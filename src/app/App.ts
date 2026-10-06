@@ -1,6 +1,7 @@
 // Game shell: screens, the main loop, input → simulation, simulation → audio.
 import * as THREE from 'three';
-import { audio, type MusicState } from '../audio/Audio';
+import { audio } from '../audio/Audio';
+import { MusicMood } from '../audio/mood';
 import { dist } from '../core/math';
 import type { OutfitId } from '../sim/level/types';
 import { World } from '../sim/World';
@@ -21,6 +22,7 @@ import {
 } from '../ui/Screens';
 import { GameView } from '../view/GameView';
 import { Input } from './Input';
+import { wantedMusic } from './musicRule';
 
 type Mode = 'title' | 'menu' | 'playing' | 'paused' | 'journal' | 'ending' | 'result';
 
@@ -35,6 +37,7 @@ export class App {
   view!: GameView;
   private hud: Hud | null = null;
   private tips = new Tips();
+  private mood = new MusicMood();
   private stepAcc = new Map<string, number>();
   mode: Mode = 'title';
   private acc = 0;
@@ -87,7 +90,7 @@ export class App {
   private showTitle() {
     this.mode = 'title';
     if (this.hud) this.newWorld(true);
-    audio.setMusic('title');
+    audio.setMusic(this.mood.force('title'));
     titleScreen({
       start: () => this.showBriefing(),
       howto: () => howtoScreen(() => this.showTitle()),
@@ -109,7 +112,7 @@ export class App {
     clearScreens();
     this.newWorld(false);
     this.mode = 'playing';
-    audio.setMusic('calm');
+    audio.setMusic(this.mood.force('calm'));
     this.canvas.focus();
   }
 
@@ -144,7 +147,7 @@ export class App {
     this.mode = 'ending';
     this.endTimer = this.world.ended === 'escaped' ? 2.2 : 2.6;
     const ok = this.world.ended === 'escaped';
-    audio.setMusic(ok ? 'victory' : 'fail');
+    audio.setMusic(this.mood.force(ok ? 'victory' : 'fail'));
     audio.play(ok ? 'success' : 'fail');
     if (ok) this.world.events.emit('fx', { kind: 'confetti', x: this.world.player.pos.x, z: this.world.player.pos.z });
     const routes: Record<string, string> = {
@@ -190,7 +193,7 @@ export class App {
     );
   }
 
-  private updateAudio() {
+  private updateAudio(dt: number) {
     const w = this.world;
     const p = w.player;
     audio.setListener(p.pos.x, p.pos.z);
@@ -204,7 +207,7 @@ export class App {
     const pianist = w.npc('pianist');
     if (pianist && pianist.awake && pianist.action === 'piano') audio.loop('piano', 'piano', { x: 28.5, z: 32.5, volume: 0.8 });
     else audio.stopLoop('piano');
-    if (w.power.on('C') || true) audio.loop('fountain', 'fountain', { x: 36, z: 51.5, volume: 0.5 });
+    audio.loop('fountain', 'fountain', { x: 36, z: 51.5, volume: 0.5 });
     audio.loop('duckfountain', 'fountain', { x: 36, z: 7, volume: 0.4 });
     if (w.power.on('A')) audio.loop('hum', 'hum', { x: 14.5, z: 15, volume: 0.6 });
     else audio.stopLoop('hum');
@@ -212,15 +215,9 @@ export class App {
     const guests = w.npcs.filter((n) => n.role === 'guest' && n.awake && dist(n.pos, p.pos) < 14).length;
     if (guests >= 3) audio.loop('crowd', 'crowd', { x: p.pos.x, z: p.pos.z, volume: Math.min(1, guests / 8) });
     else audio.stopLoop('crowd');
-    // Adaptive music
-    let m: MusicState = 'calm';
-    const noticed = [...p.noticedBy.values()].reduce((a, b) => Math.max(a, b), 0);
-    if (w.security.lockdown) m = p.chasers.size ? 'chase' : 'lockdown';
-    else if (p.chasers.size) m = 'chase';
-    else if (w.security.alarmOn || w.searchers.size || noticed > 0.5 || p.confrontedBy.size) m = 'tension';
-    else if (!w.power.on('B') && w.grid.roomAt(p.pos)?.indoor) m = 'blackout';
-    else if (w.playerStatus.trespass || noticed > 0.05 || p.crouching || p.hasGoldenDuck()) m = 'sneak';
-    audio.setMusic(m);
+    // Adaptive music (only while playing: the ending plays its own victory/fail cue).
+    // The mood smooths the per-frame request so flicker doesn't restart the score over and over.
+    if (this.mode === 'playing') audio.setMusic(this.mood.update(wantedMusic(w), dt));
   }
 
   /** Footsteps of nearby people: you can hear a guard coming before you see him. */
@@ -337,7 +334,7 @@ export class App {
     this.view.render();
     if (this.hud && !titleMode) this.hud.update(dt, this.mode === 'playing' && this.input.instinct);
     if (this.mode === 'playing' || this.mode === 'ending') {
-      this.updateAudio();
+      this.updateAudio(dt);
       this.npcFootsteps(dt);
     }
     if (this.mode === 'playing') this.tips.update(w, dt);

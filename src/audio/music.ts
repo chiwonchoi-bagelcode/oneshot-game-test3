@@ -107,7 +107,8 @@ export class Performer {
     let i = 0;
     while (i < this.q.length && this.q[i].t < horizon) {
       const e = this.q[i++];
-      if (e.t >= now - 0.08) {
+      // A little late (a hitch): play it now rather than leave a hole. Long stalls resync above.
+      if (e.t >= now - 0.25) {
         if (e.t < now) e.t = now;
         emit(e);
       }
@@ -169,7 +170,11 @@ function titlePlan(): Plan {
   };
 }
 
-/** 'calm': lazy, sparse, lots of silence. Pentatonic melody fragments over rolled lush chords. */
+/**
+ * 'calm': lazy and airy, but never dead air. The melody comes and goes (pentatonic fragments,
+ * high tinkles, or just resting), while the left hand keeps a soft rolled chord going under it:
+ * a chord at the top of the phrase and a lighter echo (5th / broken chord) halfway through.
+ */
 function calmPlan(key = 53, density = 1, bpm = 66): Plan {
   const b = 60 / bpm;
   const chords: ReadonlyArray<readonly [number, readonly number[]]> = [
@@ -184,6 +189,7 @@ function calmPlan(key = 53, density = 1, bpm = 66): Plan {
   const w = new Walker(key + 24);
   let ci = 0;
   let first = true;
+  let rested = false;
   return (t0) => {
     const ev: NoteEv[] = [];
     const len = b * 8;
@@ -194,34 +200,46 @@ function calmPlan(key = 53, density = 1, bpm = 66): Plan {
     if (first) mode = 'melody';
     else {
       const r = Math.random();
-      mode = r < 0.45 / density ? 'rest' : r < 0.83 ? 'melody' : 'tinkle';
+      // Never two resting phrases in a row.
+      mode = r < 0.4 / density && !rested ? 'rest' : r < 0.83 ? 'melody' : 'tinkle';
     }
     first = false;
-    if (mode === 'rest') {
-      if (chance(0.45)) ev.push(N(t0 + b * randi(0, 2), bassN, 0.22, b * 5));
+    rested = mode === 'rest';
+    // Left hand, always: rolled chord at the top of the phrase...
+    const lhV = mode === 'rest' ? 0.24 : 0.28;
+    ev.push(N(t0, bassN, lhV + 0.02, b * 6));
+    iv.slice(1).forEach((x, j) => ev.push(N(t0 + 0.06 * (j + 1) + hz(), fit(root + x, 53, 70), lhV - 0.08, b * 5)));
+    // ...and a lighter echo halfway through so the sound never runs dry.
+    const echoAt = t0 + b * pick([3.5, 4, 4]);
+    if (chance(0.5)) {
+      ev.push(N(echoAt, fit(root + 7, 40, 52), lhV - 0.06, b * 3.5));
+      ev.push(N(echoAt + 0.07, fit(root + iv[1], 53, 66), lhV - 0.1, b * 3));
     } else {
-      if (mode === 'melody' || chance(0.5)) {
-        ev.push(N(t0, bassN, 0.3, b * 6));
-        iv.slice(1).forEach((x, j) => ev.push(N(t0 + 0.06 * (j + 1) + hz(), fit(root + x, 53, 70), 0.2, b * 5)));
+      const broken = [iv[1], iv[2], iv[iv.length - 1]].map((x) => fit(root + x, 52, 70));
+      broken.forEach((m, j) => ev.push(N(echoAt + j * b * 0.5 + hz(), m, lhV - 0.1 - j * 0.01, b * 3)));
+    }
+    // A soft low note bridges into the next phrase (quieter when a melody is still singing).
+    ev.push(N(t0 + b * 6.5, fit(root + pick([0, 7]), 40, 52), lhV - (mode === 'melody' ? 0.12 : 0.08), b * 2.5));
+    if (mode === 'rest') {
+      // The melody breathes; maybe one high note hangs in the air.
+      if (chance(0.5)) ev.push(N(t0 + b * randi(2, 5), w.move(pent, 72, 86, 2), 0.2, b * 2));
+    } else if (mode === 'melody') {
+      let tb = pick([0.5, 1, 1, 1.5]);
+      const cnt = randi(3, 6);
+      for (let k = 0; k < cnt && tb < 7.5; k++) {
+        const durB = k === cnt - 1 ? pick([2, 3]) : pick([0.5, 1, 1, 1.5, 2]);
+        const m = w.move(pent, 65, 84, 2, 0.12);
+        ev.push(N(t0 + tb * b + hz(), m, rand(0.28, 0.42), durB * b * 1.05));
+        tb += durB;
       }
-      if (mode === 'melody') {
-        let tb = pick([0.5, 1, 1, 1.5]);
-        const cnt = randi(3, 6);
-        for (let k = 0; k < cnt && tb < 7.5; k++) {
-          const durB = k === cnt - 1 ? pick([2, 3]) : pick([0.5, 1, 1, 1.5, 2]);
-          const m = w.move(pent, 65, 84, 2, 0.12);
-          ev.push(N(t0 + tb * b + hz(), m, rand(0.28, 0.42), durB * b * 1.05));
-          tb += durB;
-        }
-      } else {
-        const ct = iv.map((x) => pc(root + x));
-        const st = b * pick([0, 1, 2]);
-        let m = fit(snapTo(root + 12, ct), 76, 86);
-        const cnt = randi(4, 6);
-        for (let k = 0; k < cnt; k++) {
-          ev.push(N(t0 + st + (k * b) / 4 + hz(), m, 0.23 - k * 0.012, b * 1.5));
-          m = stepIn(m, ct, 1);
-        }
+    } else {
+      const ct = iv.map((x) => pc(root + x));
+      const st = b * pick([0, 1, 2]);
+      let m = fit(snapTo(root + 12, ct), 76, 86);
+      const cnt = randi(4, 6);
+      for (let k = 0; k < cnt; k++) {
+        ev.push(N(t0 + st + (k * b) / 4 + hz(), m, 0.23 - k * 0.012, b * 1.5));
+        m = stepIn(m, ct, 1);
       }
     }
     ci = (ci + pick([1, 1, 2, 3, 5])) % chords.length;
@@ -432,27 +450,28 @@ function runsPlan(lockdown: boolean): Plan {
   };
 }
 
-/** 'blackout': sparse low notes + eerie whole-tone tinkles. */
+/** 'blackout': a slow, dark low drone that never quite stops + eerie whole-tone tinkles. */
 function blackoutPlan(): Plan {
   const b = 60 / 54;
   const lows = [36, 38, 40, 42, 44, 46];
   return (t0) => {
     const ev: NoteEv[] = [];
     const len = b * 8;
-    if (chance(0.75)) {
-      const m = pick(lows);
-      ev.push(N(t0 + hz(), m, 0.34, b * 5), N(t0 + 0.012, m - 12, 0.26, b * 5));
-      if (chance(0.3)) ev.push(N(t0 + b * 4, m + 6, 0.22, b * 3.5));
-    }
-    const tk = pick([0, 1, 1, 2, 2, 3, 4]);
+    const m = pick(lows);
+    ev.push(N(t0 + hz(), m, 0.32, b * 5), N(t0 + 0.012, m - 12, 0.24, b * 5));
+    // More low notes through the phrase keep the drone going (sometimes the eerie tritone).
+    const m2 = chance(0.35) ? m + 6 : pick(lows);
+    ev.push(N(t0 + b * 3, m2, 0.26, b * 4));
+    ev.push(N(t0 + b * 6, chance(0.5) ? m : pick(lows), 0.22, b * 4));
+    const tk = pick([1, 1, 2, 2, 3, 4]);
     for (let k = 0; k < tk; k++) {
       const at = rand(0.5, 7.2) * b;
-      let m = 80 + pick(WHOLE) + (chance(0.35) ? 12 : 0);
-      ev.push(N(t0 + at, m, rand(0.25, 0.45), 1.4, 'bell'));
+      let n = 80 + pick(WHOLE) + (chance(0.35) ? 12 : 0);
+      ev.push(N(t0 + at, n, rand(0.25, 0.45), 1.4, 'bell'));
       if (chance(0.3)) {
         for (let j = 1; j < 3; j++) {
-          m -= 2;
-          ev.push(N(t0 + at + j * 0.09, m, 0.22, 1.2, 'bell'));
+          n -= 2;
+          ev.push(N(t0 + at + j * 0.09, n, 0.22, 1.2, 'bell'));
         }
       }
     }
@@ -479,11 +498,12 @@ function victoryPlan(): Plan {
   };
 }
 
-/** 'fail': short sad descending phrase, then silence. */
+/** 'fail': short sad descending phrase, then soft, slow noodling for the results screen. */
 function failPlan(): Plan {
   let first = true;
+  const after = calmPlan(51, 1.6, 56);
   return (t0) => {
-    if (!first) return { ev: [], len: 4 };
+    if (!first) return after(t0);
     first = false;
     const ev: NoteEv[] = [];
     const line: ReadonlyArray<readonly [number, number]> = [
@@ -495,7 +515,7 @@ function failPlan(): Plan {
     line.forEach(([at, m], k) => ev.push(N(t0 + at, m, 0.42 - k * 0.03, k === 3 ? 2.8 : 0.45)));
     [41, 48, 56].forEach((m, j) => ev.push(N(t0 + j * 0.03, m, 0.28, 1.4)));
     [36, 43, 51, 62].forEach((m, j) => ev.push(N(t0 + 1.55 + j * 0.06, m, 0.3, 3)));
-    return { ev, len: 6 };
+    return { ev, len: 5 };
   };
 }
 
@@ -681,15 +701,16 @@ const LEVEL: Record<MusicState, number> = {
   victory: 0.95,
   fail: 0.95,
 };
+// Escalations come in quickly (a long fade-in from silence reads as the music dropping out).
 const FADE_IN: Record<MusicState, number> = {
   off: 0,
   title: 1.5,
   calm: 1.8,
-  sneak: 1.2,
-  tension: 1.2,
-  chase: 1.0,
-  blackout: 1.5,
-  lockdown: 1.0,
+  sneak: 0.9,
+  tension: 0.7,
+  chase: 0.4,
+  blackout: 1.2,
+  lockdown: 0.5,
   victory: 0.15,
   fail: 0.15,
 };

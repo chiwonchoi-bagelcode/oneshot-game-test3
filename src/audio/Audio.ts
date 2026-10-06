@@ -68,7 +68,10 @@ export interface PlayOpts {
 // ---------------------------------------------------------------------------------------------
 // Tuning
 // ---------------------------------------------------------------------------------------------
-const LOOKAHEAD = 0.2;
+// Notes are scheduled this far ahead. Pumped from the render loop *and* a 50 ms timer, so a slow
+// frame (shader compile, GC) doesn't leave the score with nothing queued.
+const LOOKAHEAD = 0.3;
+const PUMP_MS = 50;
 const MAX_SFX = 24;
 const MAX_VOICES = 10;
 const HEAR_RANGE = 28;
@@ -799,6 +802,7 @@ export class GameAudio {
   private failed = false;
   private lastResumeTry = 0;
   private unlockBound = false;
+  private pumpTimer: number | null = null;
 
   /** Must be called from a user gesture (click/keydown). Safe to call many times. */
   init(): void {
@@ -854,6 +858,7 @@ export class GameAudio {
       this.musicEng = new MusicEngine(ctx, this.buses.music, this.noiseBuf);
       this.resume();
       this.bindUnlock();
+      this.startPumpTimer();
       // Apply anything requested before init.
       this.musicEng.set(this.musicState);
       for (const [id, spec] of this.specs) this.startLoop(id, spec);
@@ -1049,6 +1054,15 @@ export class GameAudio {
     } catch {
       /* ignore */
     }
+  }
+
+  /** Keep the look-ahead queue topped up even when frames are slow (a hidden tab stays quiet). */
+  private startPumpTimer(): void {
+    if (this.pumpTimer !== null || typeof window === 'undefined' || typeof window.setInterval !== 'function') return;
+    this.pumpTimer = window.setInterval(() => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      this.update(0);
+    }, PUMP_MS);
   }
 
   /** If the context starts suspended (autoplay policy), resume it on the next user gesture. */

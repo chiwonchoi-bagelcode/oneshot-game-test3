@@ -1,5 +1,6 @@
 import './style.css';
 import { App } from './app/App';
+import { audio } from './audio/Audio';
 
 const app = new App();
 
@@ -12,5 +13,6 @@ window.addEventListener('keydown', (e) => {
   }
 });
 
-// Debug / test hook.
-(window as unknown as { __game: App }).__game = app;
+// Debug / test hooks.
+(window as unknown as { __game: App; __audio: typeof audio }).__game = app;
+(window as unknown as { __game: App; __audio: typeof audio }).__audio = audio;
