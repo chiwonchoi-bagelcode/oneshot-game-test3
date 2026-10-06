@@ -170,6 +170,7 @@ export class Player {
       } else {
         a.t += dt;
         a.during?.(w, dt);
+        if (this.action !== a) return; // called off mid-way
         if (a.target) this.facing = dampAngle(this.facing, angleOf({ x: a.target.x - this.pos.x, z: a.target.z - this.pos.z }), 10, dt);
         this.vel = { x: 0, z: 0 };
         this.speed = 0;

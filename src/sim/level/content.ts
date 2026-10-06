@@ -53,6 +53,8 @@ const ST: [string, number, number, number][] = [
   ['st_prep', 18.5, 30.35, N],
   ['st_sink', 17, 42.55, S],
   ['st_pass', 20, 36.6, N],
+  ['st_pass2', 21.1, 36.6, N],
+  ['st_pass3', 18.9, 36.6, N],
   ['st_wc_wait', 46.5, 41.5, E],
   ['st_dumpster', 9.5, 40.4, S],
   ['st_evan', 6.6, 49.2, W],
@@ -528,7 +530,7 @@ export const NPCS: NpcDef[] = [
     uniform: 'waiter',
     routine: [
       { k: 'serve', rooms: ['ballroom', 'lounge', 'conserv'], count: 3 },
-      { k: 'do', at: 'st_pass', dur: [6, 10] },
+      { k: 'do', at: 'st_pass2', dur: [6, 10] },
       { k: 'serve', rooms: ['ballroom', 'foyer', 'dining'], count: 2 },
     ],
   },
@@ -544,7 +546,7 @@ export const NPCS: NpcDef[] = [
     uniform: 'waiter',
     routine: [
       { k: 'serve', rooms: ['backgarden', 'conserv'], count: 3 },
-      { k: 'do', at: 'st_pass', dur: [6, 10] },
+      { k: 'do', at: 'st_pass3', dur: [6, 10] },
       { k: 'serve', rooms: ['frontyard', 'foyer'], count: 2 },
     ],
   },

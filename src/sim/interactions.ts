@@ -156,6 +156,7 @@ export function buildInteractables(w: World): Interactable[] {
           disabled: noPower ?? noC,
           run: (w) => {
             sec.camerasEnabled = !sec.camerasEnabled;
+            sec.camToggles++;
             w.events.emit('notify', { text: sec.camerasEnabled ? '카메라를 다시 켰다.' : '감시카메라를 껐다. (근무자가 보면 이상하게 여길 것이다)', kind: 'good' });
             const op = sec.operatorWatching(w);
             if (!sec.camerasEnabled && op) w.brain.noticePowerOut(w, op, ['C']);
@@ -599,6 +600,11 @@ function npcActions(w: World, n: Npc): ActionDef[] {
   const asleep = !n.awake;
   const behind = Math.abs(angleDiff(n.facing, angleOf({ x: p.pos.x - n.pos.x, z: p.pos.z - n.pos.z }))) > 1.75;
   const stealable = n.pockets.filter((i) => i.state === 'pocket');
+  // Things can change during the few seconds it takes: re-check while doing it.
+  const stillAsleep = (w: World) => {
+    if (n.awake) w.player.cancelAction(w, `${n.name}이(가) 깨어났다!`);
+    else if (dist(w.player.pos, n.pos) > 2.2) w.player.cancelAction(w);
+  };
   if (asleep) {
     if (stealable.length)
       acts.push({
@@ -607,6 +613,7 @@ function npcActions(w: World, n: Npc): ActionDef[] {
         dur: 1.6,
         illegal: '잠든 사람의 주머니를 뒤진다',
         anim: 'search',
+        during: stillAsleep,
         run: (w) => w.pickpocket(n, true),
       });
     if (n.uniform && !n.stripped)
@@ -617,6 +624,7 @@ function npcActions(w: World, n: Npc): ActionDef[] {
         illegal: '잠든 사람의 옷을 벗긴다',
         anim: 'grab',
         sfx: 'cloth',
+        during: stillAsleep,
         run: (w) => w.stripNpc(n),
       });
     return acts;
@@ -630,9 +638,13 @@ function npcActions(w: World, n: Npc): ActionDef[] {
     illegal: '소매치기를 한다',
     anim: 'reach',
     disabled: !behind ? '등 뒤에서만 가능하다' : n.moving && n.speed > 2.2 ? '너무 빨리 움직인다' : undefined,
+    during: (w) => {
+      const pp = w.player.pos;
+      if (dist(pp, n.pos) > 1.9) w.player.cancelAction(w, '손이 닿지 않는다.');
+      else if (Math.abs(angleDiff(n.facing, angleOf({ x: pp.x - n.pos.x, z: pp.z - n.pos.z }))) < 1.5) w.player.cancelAction(w, '앗, 돌아본다!');
+    },
     run: (w) => w.pickpocket(n, false),
   });
-  void dist;
   return acts;
 }
 

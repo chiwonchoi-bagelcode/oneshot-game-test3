@@ -130,6 +130,8 @@ export class App {
   private resume() {
     clearScreens();
     this.mode = 'playing';
+    // The key that closed the menu is still queued: don't let it reopen the menu next frame.
+    this.input.consume();
   }
 
   private openJournal() {

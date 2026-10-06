@@ -95,15 +95,19 @@ class Bot {
   /** Get through a door: wait until nobody is around, then pick it (or just walk through if open). */
   door(id: string): boolean {
     const d = this.w.door(id);
-    if (!this.waitUntil(() => this.unseen(1.5) && !this.w.someoneInDoorway(d, 'player'), 240, `door ${id} clear`)) return false;
-    if (d.open || !d.locked) return true;
-    return this.act('pick', 'door:' + id);
+    // Busy corridors: keep trying until a quiet moment lasts long enough (someone may also unlock it for us).
+    for (let attempt = 0; attempt < 20; attempt++) {
+      if (!this.waitUntil(() => this.unseen(1.5) && !this.w.someoneInDoorway(d, 'player'), 240, `door ${id} clear`)) return false;
+      if (d.open || !d.locked) return true;
+      if (this.act('pick', 'door:' + id, true, 240, 1)) return true;
+    }
+    return false;
   }
-  act(actionId: string, targetId?: string, needUnseen = true, maxWait = 240): boolean {
+  act(actionId: string, targetId?: string, needUnseen = true, maxWait = 240, attempts = 6): boolean {
     const w = this.w;
     const find = () =>
       w.options.findIndex((o) => o.action.id === actionId && !o.action.disabled && (!targetId || o.target?.id === targetId || o.item?.type === targetId));
-    for (let attempt = 0; attempt < 6; attempt++) {
+    for (let attempt = 0; attempt < attempts; attempt++) {
       if (needUnseen && !this.waitUntil(() => this.unseen(1.5), maxWait, `unseen for ${actionId}`)) return false;
       this.step();
       const i = find();
@@ -190,10 +194,13 @@ describe('an expert player can beat the mansion', () => {
     // Close the door behind us: an open door invites a look.
     w.player.facing = 0;
     ok(b.act('close', 'door:d_study', false), 'close study door');
-    ok(b.walkTo({ x: 44.5, z: 20.4 }), 'study centre');
+    // Paint in the one corner that can't be seen through the study window (the gold glitters),
+    // and tuck the fake duck straight into the gift box.
+    ok(b.walkTo({ x: 47.4, z: 21.3 }), 'study corner');
     w.dropHeld();
     ok(b.act('paint', 'self'), 'paint the duck');
     expect(w.player.hand?.type).toBe('fake_duck');
+    ok(b.act('putin', 'gift_box', false), 'fake duck into the box');
     // Unlock the secret door now, and shut it again (picking swings it open).
     ok(b.walkTo({ x: 41.7, z: 17.5 }), 'secret door');
     ok(b.door('d_study_gallery'), 'secret door');
@@ -201,17 +208,16 @@ describe('an expert player can beat the mansion', () => {
       w.player.facing = -Math.PI / 2;
       ok(b.act('close', 'door:d_study_gallery', false), 'close the secret door');
     }
-    // 7. The gallery camera covers the case, so wait for the operator's coffee break —
-    // inside the wardrobe, with the glittering fake duck tucked away in the gift box.
-    ok(b.walkTo({ x: 44.5, z: 20.3 }), 'by the gift box');
-    ok(b.act('putin', 'gift_box', false), 'fake duck into the box');
+    // 7. The gallery camera covers the case, so wait for the operator's coffee break in the wardrobe.
+    ok(b.walkTo({ x: 42.4, z: 19.6 }), 'by the wardrobe');
     w.dropHeld();
     ok(b.walkTo({ x: 42.4, z: 20.5 }), 'wardrobe');
     ok(b.act('hide', 'hide:h_wardrobe'), 'hide in the wardrobe');
     const atCoffee = () => dist(w.npc('operator')!.pos, w.station('st_coffee').pos) < 2;
     ok(b.waitUntil(() => atCoffee() && b.roomEmpty('study') && b.roomEmpty('gallery'), 420, 'coffee break, nobody around'), 'wait for the coffee break');
     ok(b.act('exit', 'hide:h_wardrobe', false), 'out of the wardrobe');
-    ok(b.walkTo({ x: 44.5, z: 20.3 }), 'back to the box');
+    const box = w.items.find((it) => it.type === 'gift_box' && it.contents?.type === 'fake_duck')!;
+    ok(b.walkTo(box.pos), 'back to the box');
     ok(b.act('pick', 'gift_box', false), 'pick up the box');
     ok(b.act('takeout', undefined, false), 'take out the fake duck');
     expect(w.player.hand?.type).toBe('fake_duck');
@@ -225,7 +231,7 @@ describe('an expert player can beat the mansion', () => {
     ok(b.walkTo({ x: 42.6, z: 17.5 }), 'inside the study');
     w.player.facing = -Math.PI / 2;
     ok(b.act('close', 'door:d_study_gallery', false), 'close secret door');
-    ok(b.walkTo({ x: 44.5, z: 20.3 }), 'by the gift box');
+    ok(b.walkTo(box.pos), 'by the gift box');
     ok(b.act('putin', 'gift_box'), 'duck into the box');
     expect(w.player.hand?.type).toBe('gift_box');
     expect(w.player.hasGoldenDuck()).toBe(true);

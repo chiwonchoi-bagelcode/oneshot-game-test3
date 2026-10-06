@@ -395,10 +395,12 @@ export class ConfrontBehavior extends Behavior {
   absorb(): boolean {
     return true;
   }
+  private startOutfit: OutfitId | null = null;
   enter(w: World, n: Npc) {
     n.goTo(w, w.player.pos, 'fast', true);
     w.player.confrontedBy.add(n.id);
     w.stats.confrontations++;
+    this.startOutfit = w.player.outfit;
   }
   exit(w: World, n: Npc) {
     w.player.confrontedBy.delete(n.id);
@@ -424,6 +426,9 @@ export class ConfrontBehavior extends Behavior {
         return st.inStreet;
       case 'behavior':
         return !st.running && !st.crouching;
+      case 'disguise':
+        // "You're not one of ours": only getting out of that uniform settles it.
+        return w.player.outfit !== this.startOutfit;
       case 'item':
         return !st.oddItem;
       case 'lockdown': {
@@ -508,7 +513,7 @@ export class ConfrontBehavior extends Behavior {
         w.brain.request(
           w,
           n,
-          new FleeReportBehavior({ kind: this.reason === 'uninvited' ? 'disguise' : 'trespass', outfit: p.outfit, pos: { ...p.pos }, text: w.content.reportText(this.reason, p.outfit) }, false),
+          new FleeReportBehavior({ kind: this.reason === 'uninvited' || this.reason === 'disguise' ? 'disguise' : 'trespass', outfit: p.outfit, pos: { ...p.pos }, text: w.content.reportText(this.reason, p.outfit) }, false),
           true,
         );
       }
@@ -549,7 +554,11 @@ export class ChaseBehavior extends Behavior {
   }
   exit(w: World, n: Npc) {
     w.player.chasers.delete(n.id);
+    // Still on edge, but it takes a fresh sighting to start another chase.
+    n.knowledge.suspicion = Math.min(n.knowledge.suspicion, 0.9);
+    n.knowledge.wary = Math.max(n.knowledge.wary, 120);
   }
+  private hiddenT = 0;
   tick(w: World, n: Npc, dt: number) {
     const k = n.knowledge;
     const p = w.player;
@@ -582,16 +591,20 @@ export class ChaseBehavior extends Behavior {
       return;
     }
     // Saw the player get into a hiding spot.
-    if (p.hidden && p.hideSeenBy.has(n.id)) {
+    if (p.hidden && p.hideSeenBy.has(n.id) && this.hiddenT < 15) {
       const spot = p.hidden;
-      if (dist(n.pos, spot.pos) > 1.1) {
-        if (n.arrived || !n.goal || dist(n.goal, spot.pos) > 1) n.goTo(w, w.approach(spot.pos, 0.6), 'chase', true);
+      this.hiddenT += dt;
+      if (dist(n.pos, spot.exit) > 0.7 && dist(n.pos, spot.pos) > 1.0) {
+        if (!n.failed && (!n.goal || dist(n.goal, spot.exit) > 0.3)) n.goTo(w, spot.exit, 'chase', true);
+        // Can't get there (locked out): give up on it and search around instead.
+        if (!n.failed) return;
+        this.hiddenT = 99;
       } else {
         n.say(w, '거기 숨은 거 다 봤다!', 'alert', 2);
         w.playerCaught(n, '숨는 모습을 들켰다');
         this.done = true;
+        return;
       }
-      return;
     }
     this.lostT += dt;
     const target = k.lastSeen?.pos;
@@ -631,7 +644,7 @@ export class SearchBehavior extends Behavior {
   private plan(w: World, n: Npc) {
     this.points = [{ p: this.center }];
     const spots = w.hideSpots.filter((h) => dist(h.pos, this.center) < 8);
-    for (const h of spots) if (w.rng.chance(0.55)) this.points.push({ p: w.approach(h.pos, 0.7), hide: h.id });
+    for (const h of spots) if (w.rng.chance(0.55)) this.points.push({ p: h.exit, hide: h.id });
     for (let i = 0; i < 4; i++) {
       const q = w.grid.randomFreeNear(this.center, 8, () => w.rng.next());
       if (q) this.points.push({ p: q });
@@ -684,7 +697,8 @@ export class SearchBehavior extends Behavior {
       if (spot) n.faceTowards(spot.pos, w, dt);
       n.action = 'search';
       if (this.timer <= 0) {
-        if (spot && w.player.hidden === spot) {
+        // Only if we actually got to it (not stuck behind a locked door).
+        if (spot && w.player.hidden === spot && !n.failed && dist(n.pos, spot.exit) < 1.0) {
           w.brain.foundHidden(w, n);
           this.done = true;
           return;
@@ -783,7 +797,8 @@ export class FleeReportBehavior extends Behavior {
       n.stop();
       this.talking = 1.8;
       n.say(w, this.info.text, 'alert', 3);
-      w.brain.request(w, g, new ListenBehavior(n.id), true);
+      // A busy guard (chasing, raising the alarm) hears it on the move instead of stopping.
+      if (w.brain.canDivert(g)) w.brain.request(w, g, new ListenBehavior(n.id), true);
     } else if (n.failed && this.t > 0.5) {
       this.pickGuard(w, n);
     }
@@ -1126,6 +1141,7 @@ export class ReturnDuckBehavior extends Behavior {
   readonly name = 'returnduck';
   private phase = 0;
   private timer = 0;
+  private target: 'case' | 'desk' = 'desk';
   constructor(public item: Item) {
     super(62);
   }
@@ -1137,23 +1153,30 @@ export class ReturnDuckBehavior extends Behavior {
   }
   exit(w: World, n: Npc) {
     w.releaseClaims(n.id);
+    // Interrupted on the way: don't walk around with it forever.
+    if (n.hand === this.item) w.npcStoreDuck(n, 'pocket');
+  }
+  private head(w: World, n: Npc, target: 'case' | 'desk') {
+    this.target = target;
+    this.timer = 0;
+    n.goTo(w, target === 'case' ? w.station('st_case').pos : w.station('st_secdesk').pos, 'fast', true);
   }
   tick(w: World, n: Npc, dt: number) {
     n.expr = 'surprised';
     if (this.phase === 0) {
-      if (this.item.state !== 'ground') {
+      if (this.item.state !== 'ground' || this.item.secured) {
         this.done = true;
         return;
       }
-      if (n.arrived || dist(n.pos, this.item.pos) < 1.1) {
+      const d = dist(n.pos, this.item.pos);
+      if (d < 1.1 || (n.arrived && d < 1.7)) {
         w.npcPickUp(n, this.item);
         n.say(w, '찾았다! 황금 오리를 되찾았어!', 'alert', 2.6);
         if (n.radio) w.security.radio(w, n, { kind: 'duck_found', text: '황금 오리를 회수했다! 전시실로 돌려놓겠다.', pos: { ...n.pos } });
         this.phase = 1;
-        const canDisplay = n.keys.has('key_gallery') || w.grid.doors.find((d) => d.def.id === 'd_gallery')!.open;
-        n.goTo(w, canDisplay ? w.station('st_case').pos : w.station('st_secdesk').pos, 'fast', true);
-        this.timer = 0;
-      } else if (n.failed) this.done = true;
+        const canDisplay = (n.keys.has('key_gallery') || w.door('d_gallery').open) && !w.caseItem && this.item.type === 'golden_duck';
+        this.head(w, n, canDisplay ? 'case' : 'desk');
+      } else if (n.failed || n.arrived) this.done = true;
       return;
     }
     if (this.phase === 1) {
@@ -1161,11 +1184,25 @@ export class ReturnDuckBehavior extends Behavior {
         this.done = true;
         return;
       }
-      if (n.arrived || n.failed) {
+      if (n.failed) {
+        // Can't get there: try the security desk, else keep it.
+        if (this.target === 'case') this.head(w, n, 'desk');
+        else {
+          w.npcStoreDuck(n, 'pocket');
+          this.done = true;
+        }
+        return;
+      }
+      if (n.arrived) {
+        if (this.target === 'case' && w.caseItem) {
+          n.say(w, '응? 진열장에 이미 오리가...?', 'thought', 2.2, 'hmm');
+          this.head(w, n, 'desk');
+          return;
+        }
         this.timer += dt;
         n.action = 'reach';
         if (this.timer > 1) {
-          w.npcStoreDuck(n);
+          w.npcStoreDuck(n, this.target);
           this.done = true;
         }
       }

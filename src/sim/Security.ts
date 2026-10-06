@@ -39,6 +39,8 @@ export class Security {
   alarmOn = false;
   alarmUntil = 0;
   camerasEnabled = true;
+  /** Bumped whenever the cameras are switched at the console (each time is a new thing to notice). */
+  camToggles = 0;
   tapes: TapeEntry[] = [];
   tapesReviewed = false;
   cams: SecCam[];
@@ -95,6 +97,8 @@ export class Security {
     this.lastIntruderRadio.set(key, w.time);
     const room = w.grid.roomAt(pos)?.name ?? '저택';
     const text = `침입자 발견! ${room}, ${OUTFITS[outfit].name} 차림이다! (${why})`;
+    // The one calling it in knows it too.
+    from.knowledge.compromised.add(outfit);
     this.radio(w, from, { kind: 'intruder', text, outfit, pos });
     w.stats.compromised.add(outfit);
     w.events.emit('notify', { text: `무전: "${OUTFITS[outfit].name}" 차림이 수배되었다! 다른 옷으로 갈아입자.`, kind: 'danger' });
@@ -136,8 +140,9 @@ export class Security {
   }
 
   reviewTapes(w: World, op: Npc) {
-    this.tapesReviewed = true;
+    // No power, no playback: try again once it's back.
     if (!w.power.on('C')) return;
+    this.tapesReviewed = true;
     const severe = this.tapes.filter((t) => t.severe);
     if (!severe.length) {
       op.say(w, '녹화 기록에는 별다른 게 없군...', 'thought', 2.6);

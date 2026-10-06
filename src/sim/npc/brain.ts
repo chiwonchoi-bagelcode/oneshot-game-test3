@@ -71,6 +71,7 @@ export class Brain {
     n.seated = false;
     n.pose = 'stand';
     n.behavior = b;
+    n.behaviorSince = w.time;
     b.t = 0;
     b.done = false;
     b.enter(w, n);
@@ -87,6 +88,7 @@ export class Brain {
     n.action = 'none';
     n.seated = false;
     n.behavior = r;
+    n.behaviorSince = w.time;
     r.done = false;
     if (w.security.lockdown && n.awake) {
       if (n.isGuard) {
@@ -140,6 +142,7 @@ export class Brain {
 
   fallAsleep(w: World, n: Npc, dur: number) {
     n.asleep = dur;
+    n.sleepCount++;
     n.sleepKind = n.seated || n.behavior.name === 'routine' && n.seated ? 'chair' : 'floor';
     if (n.job === 'operator' && dist(n.pos, w.station('st_operator').pos) < 1.2) n.sleepKind = 'chair';
     n.knowledge.suspicion = 0;
@@ -203,7 +206,8 @@ export class Brain {
       }
     } else k.nearTime = Math.max(0, k.nearTime - dt);
 
-    if (k.suspicion >= 1 && k.reason !== 'none') this.react(w, n);
+    // Only what we actually see right now can make us act (no tracking through walls).
+    if (sees && k.suspicion >= 1 && k.reason !== 'none') this.react(w, n);
     else if (sees && k.suspicion > 0.3 && k.reason !== 'none' && n.behavior.prio < 35) {
       if (n.role !== 'guest' || SEV[k.reason] >= 7) this.request(w, n, new NoticeBehavior());
     }
@@ -241,7 +245,8 @@ export class Brain {
     // Non-hostile oddities.
     if (cur === 'confront' || cur === 'chase' || cur === 'report') return;
     if (n.isGuard || ((reason === 'uninvited' || reason === 'disguise') && n.enforces.size > 0)) {
-      this.request(w, n, new ConfrontBehavior(reason));
+      // Guards on lockdown duty or searching still stop and question whoever they run into.
+      this.request(w, n, new ConfrontBehavior(reason), n.isGuard && (cur === 'lockdown' || cur === 'search'));
       return;
     }
     // Staff complain about trespassers, and report repeat offenders.
@@ -270,10 +275,14 @@ export class Brain {
   escalate(w: World, n: Npc, reason: SusReason, text: string) {
     const k = n.knowledge;
     const p = w.player;
-    k.compromised.add(p.outfit);
+    // What we know is what we saw: the live player only if they're in view right now.
+    const seen = k.seesPlayer ? { pos: { ...p.pos }, outfit: p.outfit } : k.lastSeen ? { pos: { ...k.lastSeen.pos }, outfit: k.lastSeen.outfit } : null;
+    if (seen) {
+      k.compromised.add(seen.outfit);
+      k.crimePos = seen.pos;
+      k.crimeOutfit = seen.outfit;
+    }
     k.crime = text;
-    k.crimePos = { ...p.pos };
-    k.crimeOutfit = p.outfit;
     k.suspicion = 1.25;
     k.reason = reason;
     w.stats.noteSpotted(n.id, reason, w.time);
@@ -288,6 +297,8 @@ export class Brain {
       let d = dist(g.pos, from);
       // Prefer guards in the same building section.
       if (w.grid.roomAt(g.pos)?.indoor !== w.grid.roomAt(from)?.indoor) d += 8;
+      // ...and ones who aren't already busy chasing someone.
+      if (!this.canDivert(g)) d += 15;
       if (d < bd) {
         bd = d;
         best = g;
@@ -310,6 +321,8 @@ export class Brain {
     if (g.radio && info.outfit && compromising && info.kind !== 'theft') {
       w.security.radioIntruder(w, g, info.outfit, info.pos ?? g.pos, info.text);
     }
+    // A guard in the middle of a chase (or an alarm) takes note but keeps at it.
+    if (!this.canDivert(g)) return;
     if (info.kind === 'sleeper' && info.sleeperId) {
       this.request(w, g, new InvestigateBehavior(w.npc(info.sleeperId)?.pos ?? info.pos!, 'sleeper', { npcId: info.sleeperId }, 46), true);
       return;
@@ -319,6 +332,12 @@ export class Brain {
       return;
     }
     if (info.pos) this.request(w, g, new InvestigateBehavior(info.pos, 'report'), true);
+  }
+
+  /** Can this guard be sent off to deal with something else (not chasing, alarmed, carrying the duck...)? */
+  canDivert(g: Npc): boolean {
+    const b = g.behavior;
+    return b.done || b.name === 'listen' || b.prio < 62;
   }
 
   // ---------------------------------------------------------------------------
@@ -508,7 +527,7 @@ export class Brain {
         }
         return;
       case 'investigate':
-        if (n.id === m.target && m.pos) this.request(w, n, new InvestigateBehavior(m.pos, 'camera'), true);
+        if (n.id === m.target && m.pos && this.canDivert(n)) this.request(w, n, new InvestigateBehavior(m.pos, 'camera'), true);
         else k.wary = Math.max(k.wary, 40);
         return;
       case 'theft':
@@ -565,19 +584,23 @@ export class Brain {
         if (!canSee(w, n, o.pos, { bright: o.bright, range: o.range })) continue;
       }
       if (o.only && !o.only(n)) continue;
-      n.knowledge.handled.add(o.key);
-      this.onObserve(w, n, o);
+      // Returning false means "seen, but too busy to deal with it now": look again later.
+      if (this.onObserve(w, n, o) !== false) n.knowledge.handled.add(o.key);
     }
   }
 
-  private onObserve(w: World, n: Npc, o: Observable) {
+  private onObserve(w: World, n: Npc, o: Observable): boolean | void {
     const cur = n.behavior;
     switch (o.kind) {
       case 'duck_out': {
         const item = o.item!;
         this.learnTheft(w, n, 'found');
         if (n.isGuard) {
-          if (w.claim('duck:' + item.id, n.id) && cur.prio < 62) this.request(w, n, new ReturnDuckBehavior(item), true);
+          if (cur.name === 'returnduck') return true;
+          if (cur.prio >= 62) return false;
+          // Someone else is already on it.
+          if (!w.claim('duck:' + item.id, n.id)) return false;
+          this.request(w, n, new ReturnDuckBehavior(item), true);
         } else if (cur.name !== 'report') {
           n.say(w, '저건... 황금 오리잖아?!', 'alert', 2.4, 'gasp');
           this.request(w, n, new FleeReportBehavior({ kind: 'duck_found', item, pos: { ...item.pos }, text: '황금 오리가 바닥에 떨어져 있어요!' }, false), true);

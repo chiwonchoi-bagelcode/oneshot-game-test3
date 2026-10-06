@@ -1,7 +1,7 @@
 // Daily routines ("what people do when nothing unusual happens").
 import { angleOf, dist, type V2 } from '../../core/math';
 import type { World } from '../World';
-import { Behavior } from './behaviors';
+import { Behavior, RedressBehavior } from './behaviors';
 import type { Action, MoveMode, Npc } from './Npc';
 
 export type UseKind = 'coffee' | 'cooler' | 'punch' | 'bar' | 'buffet' | 'smoke' | 'none';
@@ -70,6 +70,8 @@ export class RoutineBehavior extends Behavior {
 
   exit(w: World, n: Npc) {
     this.releaseSlot(w, n);
+    // Don't keep a toilet booked while off doing something else (the routine re-claims on resume).
+    if (this.task?.k === 'toilet') w.releaseToilet(n);
     n.seated = false;
     n.action = 'none';
     if (n.carry === 'tray' && n.job === 'waiter') n.carry = 'none';
@@ -100,6 +102,11 @@ export class RoutineBehavior extends Behavior {
     // Busy gossiping: the routine waits until the conversation is over.
     if (w.convoBusy.has(n.id)) {
       n.action = w.time < n.talkUntil ? 'talk' : 'none';
+      return;
+    }
+    // Back to normal life in underwear? First, a spare uniform from the lockers.
+    if (n.stripped && n.uniform && n.awake) {
+      w.brain.request(w, n, new RedressBehavior());
       return;
     }
     if (!this.task || this.phase === 'start') {
@@ -217,6 +224,7 @@ export class RoutineBehavior extends Behavior {
       }
       case 'trash': {
         this.sub = 0;
+        n.goTo(w, w.approach(w.bins.get('trash_galhall')!.pos), 'walk', true);
         break;
       }
       case 'gate': {
@@ -472,7 +480,16 @@ export class RoutineBehavior extends Behavior {
       if (this.phase === 'move' && !n.goal) {
         n.goTo(w, w.approach(bin.pos), 'walk', true);
       }
-      if (n.arrived || n.failed) {
+      // Couldn't get to this bin: skip it rather than emptying it from afar.
+      const there = dist(n.pos, bin.pos) < 1.8;
+      if (n.failed || (n.arrived && !there)) {
+        this.timer = 0;
+        this.sub++;
+        if (this.sub < bins.length) n.goTo(w, w.approach(w.bins.get(bins[this.sub])!.pos), 'walk', true);
+        else n.goTo(w, w.station('st_dumpster').pos, 'walk', true);
+        return;
+      }
+      if (n.arrived && there) {
         this.timer += dt;
         n.action = 'clean';
         n.facing = angleOf({ x: bin.pos.x - n.pos.x, z: bin.pos.z - n.pos.z });
@@ -487,7 +504,12 @@ export class RoutineBehavior extends Behavior {
       }
       return;
     }
-    if (n.arrived || n.failed) {
+    if (n.failed) {
+      // Can't reach the dumpster: hang on to the rubbish for now.
+      this.finish(w, n);
+      return;
+    }
+    if (n.arrived) {
       this.timer += dt;
       n.action = 'reach';
       n.facing = angleOf({ x: 9.5 - n.pos.x, z: 41.5 - n.pos.z });
@@ -561,7 +583,12 @@ export class RoutineBehavior extends Behavior {
 
   private tickCheckElec(w: World, n: Npc, dt: number) {
     if (this.sub === 0) {
-      if (n.arrived || n.failed) {
+      // Locked out of the electrical room (key stolen): nothing to check today.
+      if (n.failed || (n.arrived && dist(n.pos, w.station('st_fusebox').pos) > 1.5)) {
+        this.finish(w, n);
+        return;
+      }
+      if (n.arrived) {
         this.sub = 1;
         this.timer = 4;
         this.face = Math.PI;

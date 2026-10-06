@@ -190,6 +190,7 @@ export class World {
   searchers = new Set<string>();
   private claims = new Map<string, Set<string>>();
   private claimOwner = new Map<string, string[]>();
+  private claimAt = new Map<string, number>();
   private noiseId = 1;
   recentNoises: (Noise & { t: number })[] = [];
   playerStatus!: PlayerStatus;
@@ -365,13 +366,14 @@ export class World {
       this.claims.set(key, s);
     }
     if (s.has(npcId)) return true;
-    // Drop stale claimers (no longer busy with something).
+    // Drop stale claimers: back to their routine, or busy with something newer than the claim.
     for (const id of [...s]) {
       const o = this.npc(id);
-      if (!o || !o.awake || o.behavior.prio === 0) s.delete(id);
+      if (!o || !o.awake || o.behavior.prio === 0 || o.behaviorSince > (this.claimAt.get(key + '|' + id) ?? 0)) s.delete(id);
     }
     if (s.size >= max) return false;
     s.add(npcId);
+    this.claimAt.set(key + '|' + npcId, this.time);
     const arr = this.claimOwner.get(npcId) ?? [];
     arr.push(key);
     this.claimOwner.set(npcId, arr);
@@ -504,6 +506,7 @@ export class World {
     this.observablesDirty = true;
   }
   private detach(it: Item) {
+    it.secured = false;
     if (it.holder) {
       const h = it.holder === 'player' ? null : this.npc(it.holder);
       if (it.holder === 'player') {
@@ -623,7 +626,9 @@ export class World {
     it.state = 'flying';
     it.thrower = 'player';
     const dir = { x: Math.sin(p.facing), z: Math.cos(p.facing) };
-    it.pos = { x: p.pos.x + dir.x * 0.4, z: p.pos.z + dir.z * 0.4 };
+    const spawn = { x: p.pos.x + dir.x * 0.4, z: p.pos.z + dir.z * 0.4 };
+    // Standing against a wall: start from the player, or it would appear on the other side.
+    it.pos = this.grid.projectileHit(p.pos, spawn) ? { ...p.pos } : spawn;
     it.y = 1.3;
     it.vel = { x: dir.x * 8.5, y: 4.2, z: dir.z * 8.5 };
     it.spin = 8;
@@ -696,26 +701,34 @@ export class World {
     it.version++;
     this.observablesDirty = true;
   }
-  /** Guard returns a found duck: onto the pedestal if possible, else onto the security desk. */
-  npcStoreDuck(n: Npc) {
+  /** Guard puts away a found duck: back on the pedestal, on the security desk, or in his pocket. */
+  npcStoreDuck(n: Npc, where: 'case' | 'desk' | 'pocket') {
     const it = n.hand;
     if (!it) return;
     n.hand = null;
     n.carry = 'none';
-    it.holder = null;
-    if (dist(n.pos, this.station('st_case').pos) < 1.5 && !this.caseItem) {
+    if (where === 'case' && !this.caseItem) {
+      it.holder = null;
       it.state = 'display';
       it.pos = { x: 36, z: 18 };
       it.y = 1.15;
       this.caseItem = it;
       this.caseVersion++;
       n.say(this, '휴, 제자리에 돌려놨다.', 'normal', 2.2);
-    } else {
+    } else if (where === 'desk') {
+      it.holder = null;
       it.state = 'ground';
       it.pos = { x: 22.6, z: 14.7 };
       it.y = 0.78;
       it.version++;
+      it.secured = true;
       n.say(this, '보안실에 일단 보관해 두자.', 'normal', 2.2);
+    } else {
+      // Nowhere to put it: he keeps it on him (a pickpocket could still get it back).
+      it.state = 'pocket';
+      it.holder = n.id;
+      n.pockets.push(it);
+      n.say(this, '내가 직접 갖고 있어야겠군.', 'normal', 2.2);
     }
     this.flags.duckFound = true;
     this.observablesDirty = true;
@@ -908,6 +921,15 @@ export class World {
       illegal: '옷을 갈아입는다',
       anim: 'stretch',
       target: null,
+      // Whoever catches any part of the change sees both the old clothes and the new uniform.
+      during: (w) => {
+        for (const n of w.npcs) {
+          if (n.awake && n.knowledge.seesPlayer) {
+            n.knowledge.compromised.add(o);
+            n.knowledge.compromised.add(p.outfit);
+          }
+        }
+      },
       done: (w) => w.changeOutfit(o, false),
     });
     this.events.emit('sfx', { name: 'cloth' });
@@ -1087,7 +1109,7 @@ export class World {
   private refreshObservables() {
     const obs: Observable[] = [];
     for (const it of this.items) {
-      if (isDuck(it.type) && it.state === 'ground') {
+      if (isDuck(it.type) && it.state === 'ground' && !it.secured) {
         obs.push({ key: `duck:${it.id}:${it.version}`, kind: 'duck_out', pos: it.pos, range: 11, bright: true, item: it });
       }
       if (it.type === 'shards' && it.state === 'ground') obs.push({ key: `mess:${it.id}`, kind: 'mess', pos: it.pos, range: 10, item: it });
@@ -1095,7 +1117,7 @@ export class World {
     for (const n of this.npcs) {
       if (n.awake || !n.active) continue;
       obs.push({
-        key: `sleep:${n.id}:${Math.floor(n.asleep / 1000)}:${this.stats.drugged.size}:${n.sleepKind}`,
+        key: `sleep:${n.id}:${n.sleepCount}:${n.sleepKind}:${n.stripped}`,
         kind: n.sleepKind === 'chair' && !n.stripped ? 'napper' : 'sleeper',
         pos: n.pos,
         range: 10,
@@ -1133,7 +1155,7 @@ export class World {
     }
     if (!this.power.on('C') || !this.security.camerasEnabled) {
       obs.push({
-        key: `poutC:${this.power.version}:${this.security.camerasEnabled}`,
+        key: `poutC:${this.power.version}:${this.security.camToggles}`,
         kind: 'power_out',
         pos: this.station('st_operator').pos,
         room: 'security',
@@ -1249,6 +1271,8 @@ export class World {
       if (it.id.startsWith('npc:')) {
         const n = this.npc(it.id.slice(4));
         if (!n || !n.active) continue;
+        // Furniture between you is fine (a man asleep at his desk), a wall is not.
+        if (this.grid.barriersBetween(p.pos, n.pos) > 0) continue;
       }
       const isEdge = it.id.startsWith('door:') || it.id.startsWith('win:');
       if (!isEdge && it.id !== 'self' && !it.id.startsWith('npc:') && !this.grid.los(p.pos, pos)) continue;
@@ -1413,7 +1437,9 @@ export class World {
         this.brain.noticePowerOut(this, el, (['A', 'B', 'C'] as Circuit[]).filter((c) => !this.power.on(c)));
       }
       const longest = Math.max(offA, offB, offC);
-      if (!fixing && longest > (elOk ? 50 : 12)) {
+      // Lights going out is plain to see; a dead security circuit only matters once someone reports it.
+      const known = offA > 0 || offB > 0 || this.flags.powerReported;
+      if (!fixing && known && longest > (elOk ? 50 : 12)) {
         // Someone else with an electrical room key steps in.
         for (const id of ['butler', 'chief']) {
           const o = this.npc(id);

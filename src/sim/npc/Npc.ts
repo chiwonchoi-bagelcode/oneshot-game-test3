@@ -217,6 +217,10 @@ export class Npc {
   /** Chat spot slot occupied. */
   slot: { spot: string; i: number } | null = null;
   scanT = 0;
+  /** When the current behavior started (claims taken before that are stale). */
+  behaviorSince = 0;
+  /** How many times this NPC has been knocked out (each time is news to whoever finds them). */
+  sleepCount = 0;
 
   constructor(def: NpcDef) {
     this.id = def.id;

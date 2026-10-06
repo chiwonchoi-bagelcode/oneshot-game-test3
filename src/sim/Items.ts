@@ -33,6 +33,8 @@ export class Item {
   readonly homeRoom: string;
   /** Bumped when the item moves to a new resting place (so NPCs re-notice). */
   version = 0;
+  /** Put away on purpose (the security desk): not something lying around to report. */
+  secured = false;
   /** Gift boxes have different ribbons etc. (view only). */
   variant = 0;
 

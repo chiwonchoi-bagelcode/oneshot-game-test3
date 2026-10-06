@@ -330,4 +330,64 @@ describe('systemic scenarios', () => {
     const back = run(w, 120, 1 / 30, () => gg.behavior.name === 'routine' && Math.hypot(gg.pos.x - 36, gg.pos.z - 23.7) < 1);
     expect(back).toBe(true);
   });
+  it('a guard who loses the player does not keep tracking them or learn the look they change into', () => {
+    const w = new World(53);
+    run(w, 1);
+    const g = w.npc('patrol_front')!;
+    tp(w, { x: g.pos.x, z: g.pos.z + 3 }, Math.PI);
+    w.brain.escalate(w, g, 'crime', '테스트');
+    expect(g.behavior.name).toBe('chase');
+    // Gone: far away behind walls, and in different clothes (nobody watching).
+    tp(w, { x: 20, z: 20 });
+    w.changeOutfit('waiter', true);
+    let chases = 0;
+    let last = g.behavior.name;
+    run(w, 30, 1 / 30, () => {
+      if (g.behavior.name !== last && g.behavior.name === 'chase') chases++;
+      last = g.behavior.name;
+      return w.ended === 'caught';
+    });
+    expect(w.ended).not.toBe('caught');
+    expect(chases).toBe(0);
+    expect(g.knowledge.compromised.has('waiter')).toBe(false);
+    expect(w.npcs.some((n) => n.knowledge.compromised.has('waiter'))).toBe(false);
+  });
+
+  it('the butler knows every waiter: a fake one gets questioned and the uniform reported', () => {
+    const w = new World(59);
+    run(w, 1);
+    const butler = w.npc('butler')!;
+    butler.pos = { x: 36, z: 39.5 };
+    butler.facing = 0;
+    w.player.outfit = 'waiter';
+    tp(w, { x: 36, z: 41.5 }, Math.PI);
+    const questioned = run(w, 6, 1 / 30, () => butler.behavior.name === 'confront');
+    expect(questioned).toBe(true);
+    // We just stand there instead of getting out of that uniform: it gets reported to security.
+    const flagged = run(w, 60, 1 / 30, () => w.npcs.some((n) => n.isGuard && n.knowledge.compromised.has('waiter')));
+    expect(flagged).toBe(true);
+  });
+
+  it('a found duck is put away once by a guard without the gallery key (no pick-up loops)', () => {
+    const w = new World(61);
+    run(w, 1);
+    const duck = w.caseItem!;
+    w.security.alarmArmed = false;
+    tp(w, { x: 36, z: 19.8 }, Math.PI);
+    doAction(w, 'take', 'case');
+    // Drop it in the front yard and walk off.
+    tp(w, { x: 30, z: 50 }, 0);
+    w.dropHeld();
+    tp(w, { x: 66, z: 30 });
+    let pickups = 0;
+    let holder = duck.holder;
+    run(w, 150, 1 / 30, () => {
+      if (duck.holder !== holder && duck.holder) pickups++;
+      holder = duck.holder;
+      return false;
+    });
+    expect(pickups).toBe(1);
+    // Back on the pedestal, safely at the security desk, or in a guard's pocket — not lying around.
+    expect(duck.state === 'display' || duck.secured || duck.state === 'pocket').toBe(true);
+  });
 });

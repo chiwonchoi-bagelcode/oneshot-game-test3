@@ -29,12 +29,16 @@ describe('blending in', () => {
 
   it('a waiter can walk through the lounge and dining room without trouble', () => {
     const w = new World(67);
+    // The butler and the chef know every waiter by face and see through it (by design):
+    // send them off for this probe; nobody else should mind a waiter going about his work.
+    for (const n of w.npcs) if (n.enforces.has('waiter')) n.active = false;
     w.player.outfit = 'waiter';
     w.player.pos = { x: 54, z: 30 };
     wander(w, 'lounge', 60);
     w.player.pos = { x: 30, z: 39 };
     wander(w, 'dining', 60);
     expect(w.stats.spotted).toBe(0);
+    expect(w.stats.confrontations).toBe(0);
   });
 
   it('a guest wandering the kitchen gets told off (and possibly reported), not ignored', () => {

@@ -518,24 +518,34 @@ export class Grid {
     const cx = Math.floor(p.x);
     const cz = Math.floor(p.z);
     if (this.inBounds(cx, cz) && !this.isBlockedCell(cx, cz)) return { x: cx + 0.5, z: cz + 0.5 };
+    // Prefer cells on the same side of any wall (a wardrobe's nearest free cell may be next door).
+    let fallback: V2 | null = null;
     for (let r = 1; r < 6; r++) {
       let best: V2 | null = null;
       let bd = Infinity;
+      let any: V2 | null = null;
+      let ad = Infinity;
       for (let z = cz - r; z <= cz + r; z++) {
         for (let x = cx - r; x <= cx + r; x++) {
           if (Math.max(Math.abs(x - cx), Math.abs(z - cz)) !== r) continue;
           if (!this.inBounds(x, z) || this.isBlockedCell(x, z)) continue;
-          const d = (x + 0.5 - p.x) ** 2 + (z + 0.5 - p.z) ** 2;
-          if (d < bd) {
+          const c = { x: x + 0.5, z: z + 0.5 };
+          const d = (c.x - p.x) ** 2 + (c.z - p.z) ** 2;
+          if (d < ad) {
+            ad = d;
+            any = c;
+          }
+          if (d < bd && this.los(c, p)) {
             bd = d;
-            best = { x: x + 0.5, z: z + 0.5 };
+            best = c;
           }
         }
       }
       if (best) return best;
+      if (!fallback) fallback = any;
     }
     void agent;
-    return null;
+    return fallback;
   }
 
   /** A* over cells. Returns world points (cell centres) from start to goal inclusive, or null. */
