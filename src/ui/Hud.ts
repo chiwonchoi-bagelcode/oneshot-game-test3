@@ -74,6 +74,8 @@ export class Hud {
     this.hudEl = document.getElementById('hud')!;
     this.worldEl.innerHTML = '';
     this.hudEl.innerHTML = '';
+    // The containers are shared between runs: the result screen of the last one hid them.
+    this.setVisible(true);
     this.miniCanvas.width = 230;
     this.miniCanvas.height = 176;
     this.miniEl.append(this.miniCanvas, this.miniLabel);
@@ -102,6 +104,7 @@ export class Hud {
     for (const u of this.unsub) u();
     this.worldEl.innerHTML = '';
     this.hudEl.innerHTML = '';
+    this.setVisible(true);
   }
 
   setVisible(v: boolean) {
