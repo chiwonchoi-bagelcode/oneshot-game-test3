@@ -241,7 +241,7 @@ export class FxView {
     const k = n.knowledge;
     const b = n.behavior.name;
     if (!n.awake || !n.active) return { show: false, color: COLORS.calm, alpha: 0 };
-    if (b === 'chase') return { show: true, color: COLORS.red, alpha: 0.6 };
+    if (b === 'chase') return { show: true, color: COLORS.red, alpha: 0.42 };
     if (b === 'confront' || b === 'search' || b === 'lockdown' || b === 'alarm') return { show: true, color: COLORS.orange, alpha: 0.55 };
     if (k.suspicion > 0.03 && (k.seesPlayer || b === 'notice')) {
       const c = k.suspicion > 0.6 ? COLORS.orange : COLORS.yellow;

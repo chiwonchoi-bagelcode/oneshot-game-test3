@@ -145,6 +145,20 @@ export class App {
     audio.setMusic(ok ? 'victory' : 'fail');
     audio.play(ok ? 'success' : 'fail');
     if (ok) this.world.events.emit('fx', { kind: 'confetti', x: this.world.player.pos.x, z: this.world.player.pos.z });
+    const routes: Record<string, string> = {
+      front: '정문으로 유유히 빠져나갔다',
+      service: '직원용 쪽문으로 빠져나갔다',
+      gap: '울타리 개구멍으로 기어 나갔다',
+      boat: '보트를 저어 호수 너머로',
+      van: '배달 밴을 몰고 쪽문을 들이받았다',
+    };
+    const banner = document.createElement('div');
+    banner.className = 'ending-banner ' + (ok ? 'win' : 'lose');
+    banner.innerHTML = ok
+      ? `<div class="big">🦆 탈출 성공!</div><div class="small">${routes[this.world.stats.route] ?? ''}</div>`
+      : `<div class="big">🚔 붙잡혔다!</div><div class="small">${this.world.stats.caughtBy}: "${this.world.stats.caughtWhy}"</div>`;
+    clearScreens();
+    document.getElementById('screens')!.append(banner);
   }
 
   private showResult() {

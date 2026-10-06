@@ -81,11 +81,14 @@ export function evaluatePlayer(w: World, n: Npc, d: number): { rate: number; rea
   if (st.illegal) consider(3.0, 'crime', st.illegal);
   if (k.compromised.has(st.outfit) && d < 13) consider(2.6, 'recognized', '아까 그 수상한 사람이다!');
 
-  if (n.enforces.has(st.outfit) && d < 5.5) {
+  // Enforcers recognise strangers in "their" outfit, but only up close and after a good look.
+  const ENF_R = 4.5;
+  if (n.enforces.has(st.outfit) && d < ENF_R) {
+    const er = 0.12 + 0.85 * (1 - d / ENF_R);
     if (st.outfit === 'guest') {
-      if (!st.legit && !st.inStreet) consider(1.1, 'uninvited', '초대 명단에 없는 사람 같은데?');
+      if (!st.legit && !st.inStreet) consider(er, 'uninvited', '초대 명단에 없는 사람 같은데?');
     } else if (!(st.outfit === 'electrician' && w.power.anyOff() && n.job !== 'electrician')) {
-      consider(1.0, 'disguise', '처음 보는 얼굴인데?');
+      consider(er, 'disguise', '처음 보는 얼굴인데?');
     }
   }
 
@@ -102,7 +105,9 @@ export function evaluatePlayer(w: World, n: Npc, d: number): { rate: number; rea
   if (g && w.security.lockdown && st.lockdownViolation && !forgiven('lockdown')) consider(0.9, 'lockdown', '봉쇄 중에 돌아다닌다');
 
   let rate = best.rate;
-  if (best.reason !== 'duck' && best.reason !== 'crime') rate *= df;
+  if (best.reason === 'uninvited' || best.reason === 'disguise') {
+    // distance already factored in
+  } else if (best.reason !== 'duck' && best.reason !== 'crime') rate *= df;
   else rate *= Math.max(1, df);
   if (k.wary > 0) rate *= 1.4;
   // Busy people pay less attention to mild oddities.

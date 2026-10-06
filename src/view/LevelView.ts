@@ -23,6 +23,8 @@ interface WallInst {
   cur: number;
   target: number;
   exterior: boolean;
+  /** Last written height factor. */
+  written: number;
 }
 
 const FLOOR_COLORS: Record<Floor, [string, string]> = {
@@ -192,7 +194,7 @@ export class LevelView {
 
   // ---------------------------------------------------------------------------
   private addWall(x: number, z: number, len: number, axis: 'h' | 'v', y0: number, y1: number, exterior: boolean) {
-    this.walls.push({ x, z, len, axis, y0, y1, cur: 1, target: 1, exterior });
+    this.walls.push({ x, z, len, axis, y0, y1, cur: 1, target: 1, exterior, written: -1 });
   }
 
   private buildWalls() {
@@ -250,7 +252,7 @@ export class LevelView {
     for (const p of posts) {
       const [x, z] = p.split(',').map(Number);
       const ext = isIndoor(x - 1, z - 1) !== isIndoor(x, z) || isIndoor(x - 1, z) !== isIndoor(x, z - 1);
-      this.walls.push({ x, z, len: WALL_T, axis: 'h', y0: 0, y1: WALL_H, cur: 1, target: 1, exterior: ext });
+      this.walls.push({ x, z, len: WALL_T, axis: 'h', y0: 0, y1: WALL_H, cur: 1, target: 1, exterior: ext, written: -1 });
     }
 
     const geo = new THREE.BoxGeometry(1, 1, 1);
@@ -272,7 +274,8 @@ export class LevelView {
     const d = this.dummy;
     let changed = false;
     this.walls.forEach((w, i) => {
-      if (!all && Math.abs(w.cur - w.target) < 0.001) return;
+      if (!all && w.written === w.cur) return;
+      w.written = w.cur;
       changed = true;
       const top = w.y0 >= CUT_H ? Math.max(CUT_H, w.y0 + (w.y1 - w.y0) * w.cur) : CUT_H + (w.y1 - CUT_H) * w.cur;
       const visible = !(w.y0 >= CUT_H && w.cur < 0.05);
