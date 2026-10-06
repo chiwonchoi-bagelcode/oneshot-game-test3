@@ -1,0 +1,25 @@
+{
+  "name": "perfect-uninvited-guest",
+  "private": true,
+  "version": "1.0.0",
+  "description": "완벽한 불청객 — 저택 파티에 잠입해 황금 오리를 훔쳐 달아나는 3D 잠입 게임",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "@types/three": "^0.186.0",
+    "playwright-core": "^1.56.1",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.6",
+    "vitest": "^3.2.4"
+  }
+}
