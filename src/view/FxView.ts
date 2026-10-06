@@ -98,6 +98,7 @@ const COLORS = {
 export class FxView {
   readonly group = new THREE.Group();
   private cones = new Map<string, Cone>();
+  private peri = new Map<string, [Cone, Cone]>();
   private flashes = new Map<string, Cone>();
   private camCones: Cone[] = [];
   private camModels: { body: THREE.Object3D; led: THREE.Mesh }[] = [];
@@ -270,6 +271,15 @@ export class FxView {
         const vis = VISION[n.role];
         const lf = Math.max(0.45, lightFactor(w.lighting.at(n.pos)));
         c.set(w, n.pos, n.viewAngle, vis.half, vis.range * lf, s.color, s.alpha);
+        // Peripheral vision: wider, shorter, fainter.
+        let pc = this.peri.get(n.id);
+        if (!pc) {
+          pc = [new Cone(this.group), new Cone(this.group)];
+          this.peri.set(n.id, pc);
+        }
+        const pr = vis.range * lf * 0.45;
+        pc[0].set(w, n.pos, n.viewAngle - vis.half - 0.375, 0.375, pr, s.color, s.alpha * 0.55);
+        pc[1].set(w, n.pos, n.viewAngle + vis.half + 0.375, 0.375, pr, s.color, s.alpha * 0.55);
         used.add(n.id);
       }
       // Flashlights
@@ -284,6 +294,11 @@ export class FxView {
       }
     }
     for (const [id, c] of this.cones) if (!used.has(id)) c.mesh.visible = false;
+    for (const [id, pc] of this.peri)
+      if (!used.has(id)) {
+        pc[0].mesh.visible = false;
+        pc[1].mesh.visible = false;
+      }
     for (const [id, c] of this.flashes) if (!used.has('f:' + id)) c.mesh.visible = false;
 
     // Security cameras

@@ -645,7 +645,7 @@ export class Grid {
   }
 
   private halfFor(kind: number): number {
-    if (kind === E_HEDGE || kind === E_CRAWL) return 0.28;
+    if (kind === E_HEDGE || kind === E_CRAWL) return 0.18;
     if (kind === E_FENCE) return 0.06;
     if (kind === E_DOOR) return 0.06;
     return 0.1;

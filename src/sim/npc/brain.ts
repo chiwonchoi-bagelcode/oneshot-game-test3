@@ -638,6 +638,17 @@ export class Brain {
           if (w.rng.chance(0.5)) n.say(w, w.rng.pick(['어머, 정전이야!', '꺄! 아무것도 안 보여!', '이것도 파티 이벤트인가요?']), 'normal', 2.4, 'gasp');
           return;
         }
+        // The operator finds the cameras switched off at the console (power is fine): someone was here.
+        if (n.job === 'operator' && w.power.on('C') && !w.security.camerasEnabled) {
+          w.schedule(2, () => {
+            if (!n.awake || w.security.camerasEnabled) return;
+            w.security.camerasEnabled = true;
+            n.knowledge.wary = 200;
+            if (n.radio) w.security.radio(w, n, { kind: 'sleeper', text: '누가 보안실 콘솔에서 카메라를 꺼 놨다! 다들 경계해!' });
+          });
+          n.say(w, '어? 카메라가 왜 다 꺼져 있지?', 'alert', 2.4, 'huh');
+          return;
+        }
         this.noticePowerOut(w, n, o.circuits ?? []);
         return;
     }

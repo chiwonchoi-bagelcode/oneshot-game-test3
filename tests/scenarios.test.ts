@@ -268,4 +268,33 @@ describe('systemic scenarios', () => {
     run(w, 0.1);
     expect(w.playerStatus.trespass).toBe(true);
   });
+
+  it('cameras switched off at the console are noticed and turned back on by the operator', () => {
+    const w = new World(53);
+    const op = w.npc('operator')!;
+    // Wait for the coffee break, then sneak to the console.
+    const away = run(w, 200, 1 / 30, () => op.behavior.name === 'routine' && Math.hypot(op.pos.x - 20.5, op.pos.z - 15.75) > 4);
+    expect(away).toBe(true);
+    tp(w, { x: 22.6, z: 16.2 }, Math.PI);
+    doAction(w, 'cams', 'console');
+    doAction(w, 'alarm', 'console');
+    expect(w.security.camerasEnabled).toBe(false);
+    expect(w.security.alarmArmed).toBe(false);
+    tp(w, { x: 70, z: 62 });
+    const back = run(w, 120, 1 / 30, () => w.security.camerasEnabled);
+    expect(back).toBe(true);
+    // The quiet part (the case alarm) went unnoticed.
+    expect(w.security.alarmArmed).toBe(false);
+  });
+
+  it('the study secret door can be picked, giving a way into the gallery that avoids the guard', () => {
+    const w = new World(59);
+    for (const n of w.npcs) n.active = false;
+    tp(w, { x: 44.5, z: 22.6 }, Math.PI);
+    doAction(w, 'pick', 'door:d_study');
+    expect(w.door('d_study').open).toBe(true);
+    tp(w, { x: 41.6, z: 17.5 }, -Math.PI / 2);
+    doAction(w, 'pick', 'door:d_study_gallery');
+    expect(w.door('d_study_gallery').open).toBe(true);
+  });
 });

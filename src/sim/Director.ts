@@ -5,6 +5,7 @@ import { AttendBehavior, FollowBehavior, SpeechBehavior, StepAsideBehavior, Tour
 import type { Npc } from './npc/Npc';
 import type { World } from './World';
 
+/** Security power is down: the chief posts himself at the gallery doors until it is back. */
 class GuardDuckBehavior extends Behavior {
   readonly name = 'guardduck';
   private settled = false;
@@ -16,33 +17,20 @@ class GuardDuckBehavior extends Behavior {
     return true;
   }
   enter(w: World, n: Npc) {
-    n.say(w, '보안 전원이 나갔다고? 내가 직접 오리를 지킨다!', 'alert', 2.6);
-    n.goTo(w, w.station('st_case').pos, 'run', true);
+    n.say(w, '보안 전원이 나갔다고? 전시실 문은 내가 직접 지킨다!', 'alert', 2.6);
+    n.goTo(w, { x: 34.4, z: 23.6 }, 'run', true);
   }
   tick(w: World, n: Npc, dt: number) {
     n.expr = 'focused';
-    if (!this.settled && (n.arrived || n.failed)) {
-      this.settled = true;
-      if (n.failed) {
-        this.done = true;
-        return;
-      }
-    }
+    if (!this.settled && (n.arrived || n.failed)) this.settled = true;
     if (this.settled) {
-      n.facing = Math.PI;
+      // Facing the ballroom arches: nobody gets to those doors without him seeing.
+      const d = 0 - n.facing;
+      n.facing += Math.atan2(Math.sin(d), Math.cos(d)) * Math.min(1, dt * 4);
       this.looked += dt;
-      // Standing right next to it, he would notice a fake after a while.
-      if (this.looked > 5 && w.caseItem?.type === 'fake_duck' && !n.knowledge.knowsTheft) {
-        n.say(w, '잠깐... 이 오리, 왜 이렇게 가볍지? 고무잖아!', 'alert', 3, 'gasp');
-        w.brain.learnTheft(w, n, 'case');
-      }
-      if (this.looked > 3 && !w.caseItem && !n.knowledge.knowsTheft) {
-        n.say(w, '오리가 없어!!', 'alert', 3, 'shout');
-        w.brain.learnTheft(w, n, 'case');
-      }
     }
     if (w.power.on('C') && this.looked > 4) this.done = true;
-    if (this.t > 150) this.done = true;
+    if (this.t > 180) this.done = true;
   }
 }
 

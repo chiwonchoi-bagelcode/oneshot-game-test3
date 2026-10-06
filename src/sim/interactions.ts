@@ -417,7 +417,7 @@ export function buildInteractables(w: World): Interactable[] {
       id: 'hide:' + h.id,
       name: h.name,
       pos: () => h.pos,
-      range: h.kind === 'bush' ? 1.45 : 1.35,
+      range: h.kind === 'bush' ? 1.45 : h.kind === 'table' ? 2.2 : 1.35,
       bias: 0.2,
       actions: (w) => hideActions(w, h),
     });

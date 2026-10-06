@@ -67,7 +67,7 @@ export const DOORS: DoorDef[] = [
   { id: 'd_conserv_galhall', name: '온실 옆문', axis: 'v', at: 48, from: 23, to: 24, open: true, style: 'wood' },
   { id: 'd_gallery', name: '전시실 정문', axis: 'h', at: 22, from: 35, to: 37, lock: 'key_gallery', keepClosed: true, style: 'double' },
   { id: 'd_study', name: '서재 문', axis: 'h', at: 22, from: 44, to: 45, lock: 'key_study', pickable: true, keepClosed: true, style: 'wood' },
-  { id: 'd_study_gallery', name: '서재-전시실 비밀문', axis: 'v', at: 41, from: 17, to: 18, lock: 'key_study', keepClosed: true, style: 'wood' },
+  { id: 'd_study_gallery', name: '서재-전시실 비밀문', axis: 'v', at: 41, from: 17, to: 18, lock: 'key_study', pickable: true, keepClosed: true, style: 'wood' },
   { id: 'd_galhall_library', name: '도서실 문', axis: 'h', at: 22, from: 28, to: 29, open: true, style: 'wood' },
   { id: 'd_galhall_svc', name: '직원용 문', axis: 'v', at: 26, from: 23, to: 24, keepClosed: true, style: 'staff' },
   { id: 'd_svc_ballroom', name: '직원용 문', axis: 'v', at: 26, from: 30, to: 31, keepClosed: true, style: 'staff' },
