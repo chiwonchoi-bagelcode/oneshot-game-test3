@@ -797,6 +797,7 @@ export class World {
       this.events.emit('notify', { text: '🚨 경보가 울렸다! 진열장 무게 센서가 반응했다!', kind: 'danger' });
     } else {
       this.events.emit('notify', { text: '🦆 황금 오리를 손에 넣었다! 이제 빠져나가자.', kind: 'good' });
+      this.events.emit('bark', { id: 'player', text: '헤헤, 이제 내 거다.', dur: 2, kind: 'thought' });
     }
   }
   swapDuck() {
@@ -955,6 +956,7 @@ export class World {
     if (p.whistleCd > 0 || p.gone || p.hidden) return;
     p.whistleCd = 2.2;
     this.events.emit('sfx', { name: 'whistle', x: p.pos.x, z: p.pos.z });
+    this.events.emit('bark', { id: 'player', text: this.rng.pick(['휘~ 휘익♪', '삐-삐익♪', '휘리릭~']), dur: 1.4, kind: 'normal' });
     this.emitNoise({ pos: { ...p.pos }, radius: 9, kind: 'whistle', source: 'player' });
   }
   closestChaser(): number {
@@ -974,6 +976,7 @@ export class World {
     this.stats.endTime = this.time;
     n.action = 'grab';
     n.say(this, w_caughtLine(this), 'alert', 4, 'shout');
+    this.events.emit('bark', { id: 'player', text: '앗... 들켰다!', dur: 3, kind: 'thought' });
     this.events.emit('caught', { by: n.name, reason: why });
   }
   escape(route: string) {
