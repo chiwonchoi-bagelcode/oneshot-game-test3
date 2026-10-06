@@ -57,6 +57,7 @@ export class Hud {
   private keysEl = h('div', 'keys-hint');
   private veil = h('div', 'instinct-veil');
   private danger = h('div', 'danger-veil');
+  private hideVeil = h('div', 'hide-veil', '<div class="hide-label">🫥 숨어 있다 — 방향키나 E로 나오기</div>');
   private intelPop: HTMLDivElement | null = null;
   private intelPopUntil = 0;
   private recentTodo: { id: string; until: number } | null = null;
@@ -81,7 +82,8 @@ export class Hud {
     this.veil.style.display = 'none';
     this.danger.style.display = 'none';
     this.progressEl.style.display = 'none';
-    this.hudEl.append(this.veil, this.danger, this.todoEl, this.statusEl, this.outfitEl, this.invEl, this.promptEl, this.progressEl, this.toastsEl, this.miniEl, this.keysEl);
+    this.hideVeil.style.display = 'none';
+    this.hudEl.append(this.veil, this.danger, this.hideVeil, this.todoEl, this.statusEl, this.outfitEl, this.invEl, this.promptEl, this.progressEl, this.toastsEl, this.miniEl, this.keysEl);
     this.painter = new MapPainter(w);
 
     this.unsub.push(
@@ -148,6 +150,11 @@ export class Hud {
     this.keysEl.style.opacity = w.time < 60 ? '1' : '0';
     this.keysEl.style.transition = 'opacity 1.5s';
     this.danger.style.display = p.chasers.size > 0 || w.security.alarmOn ? '' : 'none';
+    this.hideVeil.style.display = p.hidden ? '' : 'none';
+    if (p.hidden) {
+      const cls = 'hide-veil ' + (p.hidden.kind === 'bush' ? 'leafy' : p.hidden.kind === 'table' ? 'cloth' : 'slats');
+      if (this.hideVeil.className !== cls) this.hideVeil.className = cls;
+    }
     if (this.intelPop && this.now > this.intelPopUntil) {
       this.intelPop.remove();
       this.intelPop = null;

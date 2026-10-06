@@ -702,7 +702,11 @@ export class Brain {
     else n.pose = 'stand';
     n.shake = Math.max(0, n.shake - dt);
     // Flashlight in the dark
-    n.flashlightOn = n.hasFlashlight && n.awake && w.lighting.at(n.pos) < 0.62;
+    // Flashlight with a little hysteresis so it doesn't flicker between lamp pools.
+    const lightHere = w.lighting.at(n.pos);
+    if (!n.hasFlashlight || !n.awake) n.flashlightOn = false;
+    else if (lightHere < 0.6) n.flashlightOn = true;
+    else if (lightHere > 0.85) n.flashlightOn = false;
     // Expression defaults
     if (b === 'routine') {
       if (k.suspicion > 0.15 && k.seesPlayer) n.expr = 'suspicious';

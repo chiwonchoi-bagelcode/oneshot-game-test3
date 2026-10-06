@@ -392,7 +392,8 @@ export class World {
     d.open = open;
     d.changedAt = this.time;
     d.lastUser = by;
-    if (from) d.swing = -this.grid.doorSide(d, from);
+    // Doors swing away from whoever pushes them open.
+    if (from) d.swing = (d.def.axis === 'h' ? 1 : -1) * this.grid.doorSide(d, from);
     this.grid.navVersion++;
     this.lighting.dirty = true;
     this.events.emit('sfx', { name: open ? 'door_open' : 'door_close', x: d.center.x, z: d.center.z, volume: by === 'player' ? 0.8 : 0.5 });

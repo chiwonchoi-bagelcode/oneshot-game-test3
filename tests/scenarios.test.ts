@@ -297,4 +297,19 @@ describe('systemic scenarios', () => {
     doAction(w, 'pick', 'door:d_study_gallery');
     expect(w.door('d_study_gallery').open).toBe(true);
   });
+
+  it('if the electrician lost his key, someone else with a key comes to restore the power', () => {
+    const w = new World(73);
+    const el = w.npc('electrician')!;
+    const key = el.pockets.find((i) => i.type === 'key_elec')!;
+    el.pockets = el.pockets.filter((i) => i !== key);
+    el.keys.delete('key_elec');
+    key.state = 'gone';
+    w.setBreaker('B', false, 'player');
+    expect(w.power.on('B')).toBe(false);
+    const fixed = run(w, 180, 1 / 30, () => w.power.on('B'));
+    expect(fixed).toBe(true);
+    run(w, 2);
+    expect(w.flags.fixFailedBy.size).toBe(0);
+  });
 });
