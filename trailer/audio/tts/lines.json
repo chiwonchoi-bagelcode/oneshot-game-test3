@@ -1,0 +1,484 @@
+[
+  {
+    "id": "n01",
+    "start_seconds": 14.4,
+    "text": "초대장은... 없다.",
+    "file": "n01.wav",
+    "duration_seconds": 1.7,
+    "max_seconds": 2.0,
+    "fits": true,
+    "asr_transcript": "초대장은 없다.",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 0.92,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "초대장은...",
+        "없다."
+      ],
+      "pause_seconds": 0.5,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -21.69,
+        "makeup_gain_db": 20.16,
+        "limiter_gr_db": 4.01
+      }
+    },
+    "raw_model_peak": 0.7873,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8081923723220825,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n02",
+    "start_seconds": 16.6,
+    "text": "괜찮아. 황금 오리만 가져가면 되니까.",
+    "file": "n02.wav",
+    "duration_seconds": 2.61,
+    "max_seconds": 3.4,
+    "fits": true,
+    "asr_transcript": "괜찮아. 황금 오리만 가져가면 되니까.",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 0.95,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "괜찮아. 황금 오리만 가져가면 되니까."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -23.64,
+        "makeup_gain_db": 17.13,
+        "limiter_gr_db": 1.55
+      }
+    },
+    "raw_model_peak": 0.4773,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8081525564193726,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n03",
+    "start_seconds": 22.2,
+    "text": "섞여들거나.",
+    "file": "n03.wav",
+    "duration_seconds": 0.73,
+    "max_seconds": 1.3,
+    "fits": true,
+    "asr_transcript": "섞여들거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "섞여들거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -20.66,
+        "makeup_gain_db": 16.85,
+        "limiter_gr_db": 0.0
+      }
+    },
+    "raw_model_peak": 0.4965,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -2.5,
+    "sample_peak": 0.753299355506897,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n04",
+    "start_seconds": 26.2,
+    "text": "꾀어내거나.",
+    "file": "n04.wav",
+    "duration_seconds": 0.71,
+    "max_seconds": 1.3,
+    "fits": true,
+    "asr_transcript": "꾀어내거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "꾀어내거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -21.22,
+        "makeup_gain_db": 16.62,
+        "limiter_gr_db": 0.0
+      }
+    },
+    "raw_model_peak": 0.5491,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -2.6,
+    "sample_peak": 0.7417957782745361,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n05",
+    "start_seconds": 30.2,
+    "text": "불을 끄거나.",
+    "file": "n05.wav",
+    "duration_seconds": 0.75,
+    "max_seconds": 1.3,
+    "fits": true,
+    "asr_transcript": "불을 끄거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "불을 끄거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -21.77,
+        "makeup_gain_db": 17.09,
+        "limiter_gr_db": 0.0
+      }
+    },
+    "raw_model_peak": 0.5034,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.7,
+    "sample_peak": 0.8244175910949707,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n06",
+    "start_seconds": 34.2,
+    "text": "재우거나.",
+    "file": "n06.wav",
+    "duration_seconds": 0.6,
+    "max_seconds": 1.3,
+    "fits": true,
+    "asr_transcript": "재우거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "재우거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -19.87,
+        "makeup_gain_db": 16.86,
+        "limiter_gr_db": 0.0
+      }
+    },
+    "raw_model_peak": 0.6912,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -2.1,
+    "sample_peak": 0.7882184982299805,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n07",
+    "start_seconds": 38.2,
+    "text": "급하게 만들거나.",
+    "file": "n07.wav",
+    "duration_seconds": 0.95,
+    "max_seconds": 1.3,
+    "fits": true,
+    "asr_transcript": "급하게 만들거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.0,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "급하게 만들거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -21.7,
+        "makeup_gain_db": 16.78,
+        "limiter_gr_db": 0.93
+      }
+    },
+    "raw_model_peak": 0.705,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8081632852554321,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n08",
+    "start_seconds": 42.15,
+    "text": "슬쩍하거나.",
+    "file": "n08.wav",
+    "duration_seconds": 0.87,
+    "max_seconds": 1.2,
+    "fits": true,
+    "asr_transcript": "슬쩍하거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.05,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "슬쩍하거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -21.64,
+        "makeup_gain_db": 17.67,
+        "limiter_gr_db": 1.49
+      }
+    },
+    "raw_model_peak": 0.5963,
+    "clipped": false,
+    "lufs_integrated": -15.7,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.808161735534668,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n09",
+    "start_seconds": 44.15,
+    "text": "판을 키우거나.",
+    "file": "n09.wav",
+    "duration_seconds": 0.93,
+    "max_seconds": 1.2,
+    "fits": true,
+    "asr_transcript": "판을 키우거나",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 1.05,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "판을 키우거나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -23.95,
+        "makeup_gain_db": 17.02,
+        "limiter_gr_db": 1.68
+      }
+    },
+    "raw_model_peak": 0.5783,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8067499399185181,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n10",
+    "start_seconds": 46.4,
+    "text": "아니면... 아무도 모르게.",
+    "file": "n10.wav",
+    "duration_seconds": 1.72,
+    "max_seconds": 3.0,
+    "fits": true,
+    "asr_transcript": "아니면 아무도 모르게",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 0.92,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "아니면...",
+        "아무도 모르게."
+      ],
+      "pause_seconds": 0.45,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -22.11,
+        "makeup_gain_db": 17.67,
+        "limiter_gr_db": 2.98
+      }
+    },
+    "raw_model_peak": 0.5979,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8081662654876709,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n11",
+    "start_seconds": 84.6,
+    "text": "완벽한 불청객.",
+    "file": "n11.wav",
+    "duration_seconds": 1.08,
+    "max_seconds": 2.4,
+    "fits": true,
+    "asr_transcript": "완벽한 불청객",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 0.88,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "완벽한 불청객."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -22.24,
+        "makeup_gain_db": 16.57,
+        "limiter_gr_db": 0.0
+      }
+    },
+    "raw_model_peak": 0.5912,
+    "clipped": false,
+    "lufs_integrated": -15.9,
+    "true_peak_dbtp": -2.1,
+    "sample_peak": 0.7825412750244141,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  },
+  {
+    "id": "n12",
+    "start_seconds": 87.2,
+    "text": "길은 여럿. 오리는 하나.",
+    "file": "n12.wav",
+    "duration_seconds": 1.7,
+    "max_seconds": 3.0,
+    "fits": true,
+    "asr_transcript": "길은 여럿, 오리는 하나.",
+    "asr_cer": 0.0,
+    "voice": "M2",
+    "settings": {
+      "model": "supertonic-3",
+      "model_revision": "724fb5abbf5502583fb520898d45929e62f02c0b",
+      "voice_style": "M2",
+      "lang": "ko",
+      "speed": 0.9,
+      "total_steps": 32,
+      "seed": 1,
+      "segments": [
+        "길은 여럿. 오리는 하나."
+      ],
+      "pause_seconds": null,
+      "pad_seconds": 0.03,
+      "compressor": "acompressor=threshold=0.04:ratio=4:attack=3:release=70:knee=4:detection=rms",
+      "loudness_target": "I=-16.0 LUFS, TP<=-1.5 dBTP",
+      "normalize": {
+        "input_lufs": -23.81,
+        "makeup_gain_db": 17.59,
+        "limiter_gr_db": 2.27
+      }
+    },
+    "raw_model_peak": 0.5331,
+    "clipped": false,
+    "lufs_integrated": -16.0,
+    "true_peak_dbtp": -1.8,
+    "sample_peak": 0.8081667423248291,
+    "lead_silence_ms": 30.0,
+    "tail_silence_ms": 30.0
+  }
+]

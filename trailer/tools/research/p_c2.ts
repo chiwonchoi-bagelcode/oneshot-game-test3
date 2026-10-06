@@ -1,0 +1,20 @@
+import { harness, walkTo, wait, runUntil, act, teleport, dist } from './proto';
+const h = harness(7, ['patrol_back', 'gardener', 'waiter3']);
+const { w } = h;
+const g = w.npc('patrol_back')!;
+runUntil(w, () => w.time > 101);
+teleport(w, { x: 31.0, z: 13.5 }, Math.PI / 2);
+w.player.crouching = true;
+h.log.length = 0;
+h.run((function* () {
+  yield* wait(w, 0.5);
+  while (g.pos.x < 25) yield;
+  console.log('guard at', g.pos.x.toFixed(1), g.pos.z.toFixed(1), 't', w.time.toFixed(2));
+  w.whistle();
+  yield* wait(w, 0.6);
+  yield* walkTo(w, { x: 37.4, z: 13.4 }, { crouch: true });
+  console.log('player moved', w.time.toFixed(2));
+  yield* wait(w, 6);
+})());
+h.flush();
+console.log(g.pos, [...w.player.noticedBy.entries()]);

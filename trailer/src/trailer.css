@@ -1,0 +1,77 @@
+html, body { margin: 0; padding: 0; background: #000; overflow: hidden; }
+#stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: #000; }
+#c { position: absolute; inset: 0; width: 1920px; height: 1080px; display: block; }
+.world-ui, .titles { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.world-ui .bubble { transition: none; max-width: 260px; }
+.world-ui .npc-icon .g { animation: none !important; }
+.fade { position: absolute; inset: 0; background: #000; opacity: 0; pointer-events: none; }
+.titles > * { position: absolute; }
+
+/* ---------------------------------------------------------------- trailer typography */
+.ending-banner.tt-banner { animation: none; }
+.toast.tt-toast { animation: none; }
+
+.tt-open { left: 50%; top: 62%; padding: 26px 90px 30px; background: radial-gradient(ellipse at center, rgba(14,16,34,.62) 0%, rgba(14,16,34,.38) 55%, rgba(14,16,34,0) 75%); white-space: nowrap; text-align: center; color: #fff6dc; text-shadow: 0 2px 14px rgba(0,0,0,.7); font-family: 'Gowun Batang', serif; }
+.tt-open .l1 { font-size: 34px; letter-spacing: .28em; color: #fff0c8; font-weight: 700; font-weight: 400; }
+.tt-open .l2 { margin-top: 12px; font-size: 88px; font-weight: 700; letter-spacing: .14em; color: #ffe7a6; text-shadow: 0 3px 0 rgba(60,35,0,.55), 0 0 30px rgba(255,200,90,.35); }
+.tt-open .rule { margin: 20px auto 0; width: 520px; height: 2px; background: linear-gradient(90deg, transparent, #f1cf7a, transparent); transform-origin: center; }
+
+.tt-paper { background: repeating-linear-gradient(var(--paper) 0 37px, var(--line) 37px 39px); border-radius: 8px 8px 14px 10px; box-shadow: 0 8px 0 rgba(0,0,0,.2), 0 20px 50px rgba(0,0,0,.45); font-family: var(--hand); color: var(--ink); }
+.tt-paper::before { content: ''; position: absolute; left: 20px; top: 0; bottom: 0; width: 3px; background: #f0a8a8; }
+.tt-paper h3 { margin: 0; font-size: 40px; line-height: 50px; font-weight: 700; }
+.tt-paper h3 small { font-size: 26px; color: var(--ink-soft); font-weight: 400; margin-left: 8px; }
+.tt-paper ul { list-style: none; margin: 0; padding: 0; }
+.tt-paper li { position: relative; font-size: 30px; line-height: 39px; white-space: nowrap; }
+
+.tt-todo-big { left: 50%; top: 50%; width: 900px; padding: 28px 44px 34px 64px; background: repeating-linear-gradient(var(--paper) 0 79px, var(--line) 79px 82px); }
+.tt-todo-big h3 { font-size: 92px; line-height: 104px; }
+.tt-todo-big li { font-size: 62px; line-height: 82px; }
+.tt-todo-big .strike, .tt-paper .strike { position: absolute; left: -6px; right: -6px; top: 53%; height: 5px; background: var(--ink); border-radius: 3px; transform-origin: left; transform: scaleX(0); }
+
+.tt-todo-side { left: 36px; top: 36px; width: 660px; padding: 14px 26px 18px 48px; transform-origin: top left; background: repeating-linear-gradient(var(--paper) 0 47px, var(--line) 47px 49px); }
+.tt-todo-side h3 { font-size: 46px; line-height: 56px; }
+.tt-todo-side li { font-size: 37px; line-height: 49px; padding-left: 46px !important; }
+.tt-todo-side .box { top: 12px; width: 26px; height: 26px; }
+.tt-todo-side .tick { font-size: 52px; top: -14px; }
+.tt-todo-side .strike { left: 42px !important; }
+.tt-todo-side li { padding-left: 38px; color: var(--ink); }
+.tt-todo-side li.done { color: var(--ink-soft); }
+.tt-todo-side li.current span { color: #b5523b; }
+.tt-todo-side li.done.current span { color: var(--ink-soft); }
+.tt-paper .box { position: absolute; left: 0; top: 8px; width: 22px; height: 22px; border: 3px solid var(--ink); border-radius: 5px; background: #fffdf6; }
+.tt-paper .tick { position: absolute; left: -4px; top: -14px; font-style: normal; font-size: 44px; color: #2f9e5f; font-weight: 700; text-shadow: 0 2px 0 rgba(0,0,0,.15); }
+.tt-todo-side .strike { left: 34px; right: 0; height: 4px; }
+.tt-todo-side span { display: inline-block; }
+
+.tt-strip { left: 36px; top: 40px; padding: 12px 30px 12px 84px; font-size: 46px; line-height: 60px; }
+.tt-strip .box { left: 38px; top: 20px; width: 28px; height: 28px; }
+.tt-strip .tick { left: 32px; top: -6px; font-size: 58px; }
+.tt-strip .strike { left: 80px; right: 16px; height: 5px; }
+
+.tt-hand { font-family: var(--hand); font-weight: 700; font-size: 96px; color: #fffdf3; white-space: nowrap; text-shadow: 0 5px 0 #2b2a33, 0 10px 26px rgba(0,0,0,.5); }
+.tt-hand.big { font-size: 140px; }
+.tt-hand.gold { color: #ffd84a; font-size: 104px; }
+
+.tt-toast { right: 60px; top: 70px; max-width: 560px; transform-origin: top right; font-family: var(--round); font-size: 17px; }
+
+.tt-logo { left: 50%; top: 43%; text-align: center; }
+.tt-logo .mark { display: flex; align-items: center; justify-content: center; gap: 22px; transform: rotate(-2deg); }
+.tt-logo .name { font-family: var(--hand); font-weight: 700; font-size: 196px; line-height: 1; color: #fffdf3; white-space: nowrap; text-shadow: 0 10px 0 #2b2a33, 0 22px 50px rgba(0,0,0,.6); }
+.tt-logo .duck { display: inline-block; font-size: 150px; filter: drop-shadow(0 8px 0 #2b2a33); }
+.tt-logo .en { margin-top: 26px; font-family: 'Jua', sans-serif; font-size: 30px; color: #ffe9a8; letter-spacing: .42em; text-shadow: 0 3px 0 #2b2a33; }
+
+.tt-tagline { left: 0; right: 0; top: 64%; text-align: center; font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 56px; color: #fff6dc; text-shadow: 0 3px 0 rgba(0,0,0,.55), 0 0 26px rgba(0,0,0,.6); letter-spacing: .06em; }
+.tt-tagline span { display: inline-block; }
+.tt-tagline .b { color: #ffd84a; }
+
+.tt-remaining { right: 64px; bottom: 120px; width: 560px; padding: 12px 24px 16px 46px; background: repeating-linear-gradient(var(--paper) 0 44px, var(--line) 44px 46px); }
+.tt-remaining h3 { font-size: 40px; line-height: 54px; }
+.tt-remaining li { padding-left: 42px; font-size: 32px; line-height: 46px; }
+.tt-remaining .more { font-size: 29px; line-height: 46px; color: #b5523b; }
+
+.tt-footer { left: 0; right: 0; bottom: 50px; text-align: center; font-family: 'Jua', sans-serif; font-size: 34px; color: #f3e7c6; letter-spacing: .08em; text-shadow: 0 2px 0 rgba(0,0,0,.6); }
+
+.tt-black { inset: 0; background: #000; }
+.tt-flash { inset: 0; background: #fff; mix-blend-mode: screen; }
+
+.tt-fine { left: 0; right: 0; bottom: 18px; text-align: center; font-family: 'Jua', sans-serif; font-size: 17px; color: #cfc6ae; letter-spacing: .04em; }

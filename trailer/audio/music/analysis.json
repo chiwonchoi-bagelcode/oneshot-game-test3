@@ -1,0 +1,303 @@
+{
+  "duration_s": 97.0,
+  "samples": 4656000,
+  "lufs_integrated": -14.1,
+  "sample_peak_dbfs": -1.31,
+  "true_peak_dbtp_4x": -1.3,
+  "rms10ms_max_dBFS": {
+    "S0 0.00-0.55": -158.0,
+    "after hard stop 14.19-14.23": -185.3,
+    "S2 gag 14.25-14.80": -16.5,
+    "S2 rest 14.90-16.05": -38.5,
+    "break 45.90-46.05": -240.0,
+    "S14 92.15-96.15": -184.4,
+    "S14 bassoon 96.20-96.70": -18.2,
+    "S1 waltz 2-9s": -15.4,
+    "S13 title 84.1-85": -10.7
+  },
+  "section_rms_dBFS": {
+    "S1 waltz": -23.4,
+    "S1 reveal": -18.0,
+    "S1 golden chord": -12.0,
+    "S3-S4": -23.6,
+    "S5a": -19.2,
+    "S5b": -16.5,
+    "S6": -25.3,
+    "S7": -18.6,
+    "S8": -24.5,
+    "S8 sting / S9": -19.8,
+    "S10": -18.3,
+    "S11": -15.4,
+    "S12": -13.8,
+    "S13": -17.7
+  },
+  "hits": [
+    {
+      "target": 22.1,
+      "onset": 22.1017,
+      "err_ms": 1.7,
+      "flux_peak": 22.0987,
+      "rise_dB": 14.3
+    },
+    {
+      "target": 26.1,
+      "onset": 26.1012,
+      "err_ms": 1.2,
+      "flux_peak": 26.0987,
+      "rise_dB": 20.8
+    },
+    {
+      "target": 30.1,
+      "onset": 30.1002,
+      "err_ms": 0.2,
+      "flux_peak": 30.0967,
+      "rise_dB": 21.0
+    },
+    {
+      "target": 34.1,
+      "onset": 34.1017,
+      "err_ms": 1.7,
+      "flux_peak": 34.0987,
+      "rise_dB": 18.1
+    },
+    {
+      "target": 38.1,
+      "onset": 38.1002,
+      "err_ms": 0.2,
+      "flux_peak": 38.0987,
+      "rise_dB": 17.3
+    },
+    {
+      "target": 42.1,
+      "onset": 42.1002,
+      "err_ms": 0.2,
+      "flux_peak": 42.0987,
+      "rise_dB": 14.0
+    },
+    {
+      "target": 44.1,
+      "onset": 44.1052,
+      "err_ms": 5.2,
+      "flux_peak": 44.0987,
+      "rise_dB": 11.7
+    },
+    {
+      "target": 60.6,
+      "onset": 60.6007,
+      "err_ms": 0.7,
+      "flux_peak": 60.5947,
+      "rise_dB": 13.0
+    },
+    {
+      "target": 66.1,
+      "onset": 66.0997,
+      "err_ms": -0.3,
+      "flux_peak": 66.0987,
+      "rise_dB": 24.9
+    },
+    {
+      "target": 84.1,
+      "onset": 84.1032,
+      "err_ms": 3.2,
+      "flux_peak": 84.0967,
+      "rise_dB": 9.4
+    },
+    {
+      "target": 12.6,
+      "onset": 12.6092,
+      "err_ms": 9.2,
+      "flux_peak": 12.5967,
+      "rise_dB": 8.5
+    },
+    {
+      "target": 78.1,
+      "onset": 78.1077,
+      "err_ms": 7.7,
+      "flux_peak": 78.0987,
+      "rise_dB": 7.0
+    }
+  ],
+  "midi_open_notes": 0,
+  "master": {
+    "comp_max_gr_db": 4.77,
+    "makeup_db": 8.15,
+    "limiter_max_gr_db": 5.88,
+    "limiter_gr_over_1db_s": 4.02,
+    "limiter_gr_events_over_3db": [
+      12.6,
+      12.7,
+      38.1,
+      38.2,
+      42.2,
+      44.1,
+      44.2,
+      66.1,
+      66.2,
+      84.1,
+      84.2,
+      84.4
+    ]
+  },
+  "latency_compensation_ms": {
+    "Piano": {
+      "range_ms": [
+        2.2,
+        6.3
+      ]
+    },
+    "Strings legato": {
+      "range_ms": [
+        17.9,
+        30.0
+      ]
+    },
+    "Low strings": {
+      "range_ms": [
+        17.9,
+        30.0
+      ]
+    },
+    "Strings spiccato": {
+      "range_ms": [
+        17.9,
+        30.0
+      ]
+    },
+    "Violin harmonics": {
+      "range_ms": [
+        30.0,
+        30.0
+      ]
+    },
+    "Strings tremolo": {
+      "range_ms": [
+        10.2,
+        17.6
+      ]
+    },
+    "Contrabasses": {
+      "range_ms": [
+        7.5,
+        14.7
+      ]
+    },
+    "Pizzicato strings": {
+      "range_ms": [
+        4.9,
+        11.3
+      ]
+    },
+    "Harp": {
+      "range_ms": [
+        3.5,
+        4.4
+      ]
+    },
+    "Celesta": {
+      "range_ms": [
+        2.3,
+        2.7
+      ]
+    },
+    "Glockenspiel": {
+      "range_ms": [
+        7.0,
+        8.4
+      ]
+    },
+    "Vibraphone": {
+      "range_ms": [
+        3.6,
+        5.3
+      ]
+    },
+    "Flute": {
+      "range_ms": [
+        30.0,
+        30.0
+      ]
+    },
+    "Clarinet": {
+      "range_ms": [
+        7.8,
+        11.0
+      ]
+    },
+    "Bassoon": {
+      "range_ms": [
+        3.5,
+        21.5
+      ]
+    },
+    "Muted trumpet": {
+      "range_ms": [
+        6.5,
+        16.2
+      ]
+    },
+    "Trumpets": {
+      "range_ms": [
+        4.6,
+        8.6
+      ]
+    },
+    "Horns": {
+      "range_ms": [
+        9.1,
+        16.5
+      ]
+    },
+    "Trombones": {
+      "range_ms": [
+        15.3,
+        30.0
+      ]
+    },
+    "Tuba": {
+      "range_ms": [
+        2.6,
+        13.0
+      ]
+    },
+    "Timpani": {
+      "range_ms": [
+        4.8,
+        7.1
+      ]
+    },
+    "Brush kit": {
+      "36": 4.5,
+      "37": 4.6,
+      "38": 2.8,
+      "40": 5.4,
+      "42": 2.2,
+      "44": 2.4,
+      "49": 2.7,
+      "51": 2.4,
+      "57": 2.8,
+      "76": 3.5,
+      "77": 3.9
+    },
+    "Room kit": {
+      "36": 3.0,
+      "38": 3.4,
+      "41": 2.0,
+      "42": 2.2,
+      "43": 2.2,
+      "45": 2.2,
+      "48": 2.1,
+      "49": 2.7,
+      "50": 2.1,
+      "59": 2.5
+    },
+    "Orchestral percussion": {
+      "36": 5.9,
+      "38": 2.9,
+      "57": 2.4,
+      "59": 2.5
+    }
+  },
+  "midi_length_s": 96.66,
+  "note_count": 2188,
+  "ffmpeg_ebur128_summary": "Summary: Integrated loudness: I: -14.1 LUFS Threshold: -24.5 LUFS Loudness range: LRA: 12.3 LU Threshold: -34.6 LUFS LRA low: -22.3 LUFS LRA high: -10.0 LUFS True peak: Peak: -1.3 dBFS [out#0/null @ 0xbaac10240] video:0KiB audio:18188KiB subtitle:0KiB other streams:0KiB global headers:0KiB muxing overhead: unknown size=N/A time=00:01:37.00 bitrate=N/A speed= 182x elapsed=0:00:00.53"
+}

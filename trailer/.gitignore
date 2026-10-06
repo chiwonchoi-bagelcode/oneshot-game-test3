@@ -1,0 +1,13 @@
+.venv/
+build/
+frames/
+*.sf2
+*.sf3
+audio/**/cache/
+.venv-tts/
+.venv-sfx/
+.venv-music/
+.venv-mix/
+__pycache__/
+audio/tts/models/
+audio/music/stems/
