@@ -133,9 +133,9 @@ export class Hud {
   private showIntel(id: string, title: string) {
     this.intelPop?.remove();
     const def = INTEL.find((i) => i.id === id);
-    this.intelPop = h('div', 'intel-pop', `👂 새로운 소문을 들었다: <b>${title}</b><small>${def?.hint ?? ''}</small><small>(Tab: 수첩에서 다시 보기)</small>`);
+    this.intelPop = h('div', 'intel-pop', `👂 새 소문: <b>${title}</b><small>${def?.hint ?? ''} <i>(Tab: 수첩)</i></small>`);
     this.hudEl.append(this.intelPop);
-    this.intelPopUntil = this.now + 7;
+    this.intelPopUntil = this.now + 6;
   }
 
   // ---------------------------------------------------------------------------

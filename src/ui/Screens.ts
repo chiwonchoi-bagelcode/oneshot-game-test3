@@ -52,7 +52,7 @@ export function titleScreen(on: { start: () => void; howto: () => void; records:
   s.querySelector('[data-a=howto]')!.addEventListener('click', on.howto);
   s.querySelector('[data-a=records]')!.addEventListener('click', on.records);
   root().append(s);
-  (s.querySelector('[data-a=start]') as HTMLButtonElement).focus();
+  (s.querySelector('[data-a=start]') as HTMLButtonElement).focus({ preventScroll: true });
 }
 
 export function howtoScreen(back: () => void) {
@@ -143,7 +143,7 @@ export function briefingScreen(go: () => void, back: () => void) {
   s.querySelector('[data-a=go]')!.addEventListener('click', go);
   s.querySelector('[data-a=back]')!.addEventListener('click', back);
   root().append(s);
-  (s.querySelector('[data-a=go]') as HTMLButtonElement).focus();
+  (s.querySelector('[data-a=go]') as HTMLButtonElement).focus({ preventScroll: true });
 }
 
 export function pauseScreen(on: { resume: () => void; restart: () => void; title: () => void; mute: () => void; muted: boolean }) {
@@ -263,7 +263,7 @@ export function resultScreen(w: World, info: ResultInfo, on: { retry: () => void
     <h2 class="result-title">${success ? '🦆 ' : '🚔 '}${info.title}</h2>
     <div class="rating"><span class="stamp">${info.rating}</span></div>
     ${reason}
-    <div class="stats">${info.lines.map(([a, b]) => `<span>${a}</span><span class="v">${b}</span>`).join('')}</div>
+    <div class="stats two">${info.lines.map(([a, b]) => `<span>${a}</span><span class="v">${b}</span>`).join('')}</div>
     <ul class="todo-summary">${todos.map((t) => `<li class="${w.stats.todos.has(t.id) ? 'done' : ''}">${w.stats.todos.has(t.id) ? '✔' : '○'} ${t.text}</li>`).join('')}</ul>
     <p class="small-note">${tip}</p>
     <div class="row-btns">
@@ -274,5 +274,5 @@ export function resultScreen(w: World, info: ResultInfo, on: { retry: () => void
   s.querySelector('[data-a=retry]')!.addEventListener('click', on.retry);
   s.querySelector('[data-a=title]')!.addEventListener('click', on.title);
   root().append(s);
-  (s.querySelector('[data-a=retry]') as HTMLButtonElement).focus();
+  (s.querySelector('[data-a=retry]') as HTMLButtonElement).focus({ preventScroll: true });
 }

@@ -86,7 +86,7 @@ export class Director {
       if (w.time >= this.fwNextBurst) {
         this.fwNextBurst = w.time + w.rng.range(0.5, 1.4);
         this.fwBursts++;
-        w.events.emit('fx', { kind: 'fireworks', x: 28 + w.rng.range(-6, 6), z: 2 + w.rng.range(-3, 2), y: 14 + w.rng.range(0, 6) });
+        w.events.emit('fx', { kind: 'fireworks', x: 30 + w.rng.range(-8, 8), z: 4 + w.rng.range(-3, 3), y: 7 + w.rng.range(0, 4) });
         w.events.emit('sfx', { name: 'fireworks_boom', x: 28, z: 2, volume: 0.9, pitch: w.rng.range(0.8, 1.2) });
         if (this.fwBursts % 5 === 0) w.emitNoise({ pos: { x: 28, z: 4 }, radius: 70, kind: 'fireworks', source: 'fireworks' });
       }

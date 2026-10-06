@@ -64,7 +64,7 @@ export class GameView {
 
   static createRenderer(canvas: HTMLCanvasElement): THREE.WebGLRenderer {
     const r = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-    r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
+    r.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
     r.shadowMap.enabled = true;
     r.shadowMap.type = THREE.PCFSoftShadowMap;
     r.outputColorSpace = THREE.SRGBColorSpace;
