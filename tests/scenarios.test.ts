@@ -111,8 +111,9 @@ describe('systemic scenarios', () => {
     w.player.gone = true; // out of the picture
     const found = run(w, 520, 1 / 20, () => w.stats.theftKnownAt >= 0);
     expect(found).toBe(true);
-    run(w, 20, 1 / 20);
-    expect(w.security.lockdown).toBe(true);
+    // Whoever noticed tells a guard; the chief orders a lockdown over the radio.
+    const locked = run(w, 120, 1 / 20, () => w.security.lockdown);
+    expect(locked).toBe(true);
     // Front gate gets closed by the doorman.
     run(w, 30, 1 / 20);
     expect(w.door('d_front_gate').locked).toBe(true);
@@ -234,5 +235,37 @@ describe('systemic scenarios', () => {
     tp(w, { x: 60, z: 62 });
     const argued = run(w, 120, 1 / 30, () => w.flags.lateGuestArguing);
     expect(argued).toBe(true);
+  });
+
+  it('changing clothes out of sight shakes off a chasing guard', () => {
+    const w = new World(43);
+    run(w, 1);
+    const g = w.npc('patrol_front')!;
+    // The guard spots and chases a suspicious guest in the front yard.
+    tp(w, { x: g.pos.x, z: g.pos.z + 3 }, Math.PI);
+    w.brain.escalate(w, g, 'crime', '테스트');
+    expect(g.behavior.name).toBe('chase');
+    // We slip behind the mansion (out of sight) and change into a waiter uniform.
+    tp(w, { x: 66, z: 30 });
+    w.player.owned.add('waiter');
+    run(w, 1);
+    w.requestOutfit('waiter');
+    run(w, 2.2);
+    expect(w.player.outfit).toBe('waiter');
+    // The guard comes looking, sees "a waiter", and doesn't recognise us.
+    const caught = run(w, 25, 1 / 30, () => w.ended === 'caught');
+    expect(caught).toBe(false);
+    expect(g.knowledge.compromised.has('waiter')).toBe(false);
+  });
+
+  it('guests may join the host on the gallery tour', () => {
+    const w = new World(47);
+    w.flags.tourActive = true;
+    tp(w, { x: 34, z: 19.5 });
+    run(w, 0.1);
+    expect(w.playerStatus.trespass).toBe(false);
+    w.flags.tourActive = false;
+    run(w, 0.1);
+    expect(w.playerStatus.trespass).toBe(true);
   });
 });

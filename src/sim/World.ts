@@ -1042,6 +1042,8 @@ export class World {
     const zone: Zone = room?.zone ?? 'street';
     let allowed = new Set(OUTFITS[p.outfit].zones);
     if (p.outfit === 'electrician' && this.power.anyOff()) allowed = new Set([...allowed, 'public', 'sec_elec']);
+    // During the host's tour, guests are welcome in the gallery.
+    if (this.flags.tourActive && p.outfit === 'guest') allowed.add('sec_gallery');
     const trespass = !allowed.has(zone);
     const h = p.hand;
     const duckVisible = !!h && isDuck(h.type);
@@ -1164,7 +1166,6 @@ export class World {
       for (const s of c.speakers) {
         const other = c.speakers.find((o) => o !== s);
         if (other) s.lookAt(other.pos, 1);
-        s.stop();
       }
       c.timer -= dt;
       if (c.timer <= 0) {

@@ -6,8 +6,9 @@ const T = {
   cyl: new THREE.CylinderGeometry(1, 1, 1, 14).toNonIndexed(),
   cyl6: new THREE.CylinderGeometry(1, 1, 1, 6).toNonIndexed(),
   cyl8: new THREE.CylinderGeometry(1, 1, 1, 8).toNonIndexed(),
-  sphere: new THREE.SphereGeometry(1, 14, 10).toNonIndexed(),
+  sphere: new THREE.SphereGeometry(1, 12, 8).toNonIndexed(),
   sphereLo: new THREE.IcosahedronGeometry(1, 1).toNonIndexed(),
+  sphereTiny: new THREE.IcosahedronGeometry(1, 0).toNonIndexed(),
   cone: new THREE.ConeGeometry(1, 1, 14).toNonIndexed(),
   cone4: new THREE.ConeGeometry(1, 1, 4).toNonIndexed(),
   cone8: new THREE.ConeGeometry(1, 1, 8).toNonIndexed(),
@@ -30,6 +31,12 @@ export class GeoBuilder {
   col: number[] = [];
 
   add(prim: Prim, x: number, y: number, z: number, sx: number, sy: number, sz: number, color: string | THREE.Color, ry = 0, rx = 0, rz = 0) {
+    // Small decorative spheres don't need many triangles.
+    if (prim === 'sphere') {
+      const m = Math.max(sx, sy, sz);
+      if (m < 0.1) prim = 'sphereTiny';
+      else if (m < 0.3) prim = 'sphereLo';
+    }
     const g = T[prim];
     e.set(rx, ry, rz, 'YXZ');
     q.setFromEuler(e);

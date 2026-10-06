@@ -131,6 +131,9 @@ export class Hud {
     const w = this.w;
     const p = w.player;
     this.veil.style.display = instinct ? '' : 'none';
+    // Key reminder fades out after the first minute (it is always in the journal/pause menu).
+    this.keysEl.style.opacity = w.time < 60 ? '1' : '0';
+    this.keysEl.style.transition = 'opacity 1.5s';
     this.danger.style.display = p.chasers.size > 0 || w.security.alarmOn ? '' : 'none';
     if (this.intelPop && this.now > this.intelPopUntil) {
       this.intelPop.remove();
@@ -227,6 +230,25 @@ export class Hud {
     for (const [id, el] of this.tags) {
       const n = w.npc(id);
       if (!instinct || !n || dist(n.pos, p.pos) >= 24) el.style.display = 'none';
+    }
+    // Contraband marker over the player's head.
+    {
+      let el = this.icons.get('player');
+      const show = !p.gone && !p.hidden && w.playerStatus.duckVisible;
+      if (show) {
+        const s = v.project(p.pos.x, v.headTop('player') + 0.6, p.pos.z);
+        if (s) {
+          if (!el) {
+            el = h('div', 'npc-icon c-red');
+            el.innerHTML = '<span class="g" style="font-size:26px">🦆</span>';
+            this.worldEl.append(el);
+            this.icons.set('player', el);
+          }
+          el.style.transform = `translate(${s.x}px, ${s.y}px)`;
+          el.style.display = '';
+        }
+      } else if (el) el.style.display = 'none';
+      seenIcons.add('player');
     }
     // Edge arrows for off-screen watchers.
     const watchers = w.npcs.filter((n) => (p.noticedBy.get(n.id) ?? 0) > 0.05 || p.chasers.has(n.id));

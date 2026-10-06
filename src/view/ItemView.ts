@@ -127,6 +127,7 @@ export class ItemView {
       if (it.state === 'display') {
         m.rotation.y = this.t * 0.6;
         m.position.y = it.y + Math.sin(this.t * 1.5) * 0.02;
+        m.scale.setScalar(1.5);
       } else if (it.state === 'flying') {
         m.rotation.x += dt * it.spin;
         m.rotation.z += dt * it.spin * 0.6;
@@ -135,6 +136,7 @@ export class ItemView {
         m.rotation.z = 0;
         m.rotation.y = (it.id * 1.7) % (Math.PI * 2);
       }
+      if (it.state !== 'display') m.scale.setScalar(1);
       m.visible = true;
     }
     for (const [id, m] of this.meshes) {

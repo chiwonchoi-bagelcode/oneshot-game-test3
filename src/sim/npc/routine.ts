@@ -97,6 +97,11 @@ export class RoutineBehavior extends Behavior {
   }
 
   tick(w: World, n: Npc, dt: number) {
+    // Busy gossiping: the routine waits until the conversation is over.
+    if (w.convoBusy.has(n.id)) {
+      n.action = w.time < n.talkUntil ? 'talk' : 'none';
+      return;
+    }
     if (!this.task || this.phase === 'start') {
       if (!this.task) this.task = this.nextTask(w, n);
       this.begin(w, n, this.task);

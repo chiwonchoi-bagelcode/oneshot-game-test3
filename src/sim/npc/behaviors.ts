@@ -566,7 +566,9 @@ export class ChaseBehavior extends Behavior {
       if (this.t > 1) n.say(w, w.rng.pick(w.content.lines.chase), 'alert', 2, 'shout');
       w.emitNoise({ pos: { ...n.pos }, radius: 15, kind: 'shout', source: n.id, data: { pos: k.lastSeen?.pos } });
     }
-    if (k.seesPlayer && !p.hidden) {
+    // We chase the person we recognise: after an unseen change of clothes they're a stranger.
+    const recognised = k.seesPlayer && !p.hidden && (k.compromised.has(p.outfit) || w.playerStatus.duckVisible || !!w.playerStatus.illegal);
+    if (recognised) {
       this.lostT = 0;
       this.repath -= dt;
       if (this.repath <= 0 || n.arrived) {

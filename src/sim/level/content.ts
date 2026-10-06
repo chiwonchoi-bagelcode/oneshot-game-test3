@@ -1058,7 +1058,11 @@ export class Content {
   confrontLine(reason: SusReason, outfit: OutfitId): string {
     switch (reason) {
       case 'trespass':
-        return outfit === 'guest' ? '손님, 여긴 들어오시면 안 됩니다. 나가 주세요.' : '거기! 여긴 출입 금지 구역이다. 당장 나가.';
+        if (outfit === 'guest') return '손님, 여긴 들어오시면 안 됩니다. 나가 주세요.';
+        if (outfit === 'chef') return '요리사가 왜 여기 있지? 주방으로 돌아가.';
+        if (outfit === 'electrician') return '수리 기사님, 여긴 볼일 없으실 텐데요. 나가 주시죠.';
+        if (outfit === 'waiter') return '웨이터는 여기 들어오면 안 돼. 당장 나가.';
+        return '거기! 여긴 출입 금지 구역이다. 당장 나가.';
       case 'uninvited':
         return '잠시만요, 초대장을 확인하겠습니다.';
       case 'behavior':

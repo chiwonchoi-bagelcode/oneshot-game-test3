@@ -462,6 +462,10 @@ export class Npc {
         continue;
       }
       if (side !== c.side && dd > 1.15 && dd < 3.5) {
+        if (this.job === 'host' && w.flags.tourActive && c.door.def.id === 'd_gallery') {
+          this.closeBehind.splice(i, 1);
+          continue;
+        }
         if (c.door.open && !w.someoneInDoorway(c.door, this.id)) {
           w.setDoorOpen(c.door, false, this.id, this.pos);
         }

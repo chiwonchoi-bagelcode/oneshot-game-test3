@@ -52,7 +52,7 @@ class Cone {
       this.col[c] = color.r;
       this.col[c + 1] = color.g;
       this.col[c + 2] = color.b;
-      this.col[c + 3] = alpha * 0.18;
+      this.col[c + 3] = alpha * 0.3;
     }
     this.geo.attributes.position.needsUpdate = true;
     this.geo.attributes.color.needsUpdate = true;
@@ -88,8 +88,11 @@ const COLORS = {
   yellow: new THREE.Color('#ffd84a'),
   orange: new THREE.Color('#ff9a3c'),
   red: new THREE.Color('#ff4a4a'),
-  cam: new THREE.Color('#d7f0ff'),
+  cam: new THREE.Color('#9fd8ff'),
   flash: new THREE.Color('#fff2b8'),
+  guard: new THREE.Color('#5b8cff'),
+  staff: new THREE.Color('#5fd38d'),
+  guest: new THREE.Color('#ffe27a'),
 };
 
 export class FxView {
@@ -237,15 +240,15 @@ export class FxView {
     const k = n.knowledge;
     const b = n.behavior.name;
     if (!n.awake || !n.active) return { show: false, color: COLORS.calm, alpha: 0 };
-    if (b === 'chase') return { show: true, color: COLORS.red, alpha: 0.5 };
-    if (b === 'confront' || b === 'search' || b === 'lockdown' || b === 'alarm') return { show: true, color: COLORS.orange, alpha: 0.42 };
+    if (b === 'chase') return { show: true, color: COLORS.red, alpha: 0.6 };
+    if (b === 'confront' || b === 'search' || b === 'lockdown' || b === 'alarm') return { show: true, color: COLORS.orange, alpha: 0.55 };
     if (k.suspicion > 0.03 && (k.seesPlayer || b === 'notice')) {
       const c = k.suspicion > 0.6 ? COLORS.orange : COLORS.yellow;
-      return { show: true, color: c, alpha: 0.25 + k.suspicion * 0.3 };
+      return { show: true, color: c, alpha: 0.4 + k.suspicion * 0.25 };
     }
-    if (b === 'investigate') return { show: true, color: COLORS.yellow, alpha: 0.3 };
-    if (this.instinct) return { show: true, color: n.isGuard ? new THREE.Color('#bfe0ff') : COLORS.calm, alpha: n.isGuard ? 0.3 : 0.18 };
-    if (n.isGuard && n.knowledge.wary > 0) return { show: true, color: COLORS.calm, alpha: 0.16 };
+    if (b === 'investigate') return { show: true, color: COLORS.yellow, alpha: 0.45 };
+    if (this.instinct) return { show: true, color: n.isGuard ? COLORS.guard : n.role === 'staff' ? COLORS.staff : COLORS.guest, alpha: n.isGuard ? 0.5 : 0.36 };
+    if (n.isGuard && n.knowledge.wary > 0) return { show: true, color: COLORS.guard, alpha: 0.3 };
     return { show: false, color: COLORS.calm, alpha: 0 };
   }
 
@@ -293,7 +296,7 @@ export class FxView {
       const cone = this.camCones[i];
       if (powered && Math.hypot(cam.pos.x - focus.x, cam.pos.z - focus.z) < 28) {
         const color = cam.meter > 0.6 ? COLORS.red : cam.meter > 0.05 ? COLORS.orange : COLORS.cam;
-        cone.set(w, cam.pos, cam.angle, cam.fov / 2, cam.range, color, cam.meter > 0.05 ? 0.45 : 0.24, 0.045);
+        cone.set(w, cam.pos, cam.angle, cam.fov / 2, cam.range, color, cam.meter > 0.05 ? 0.55 : 0.34, 0.045);
       } else cone.mesh.visible = false;
     });
 
@@ -344,8 +347,21 @@ export class FxView {
     this.pMesh.instanceMatrix.needsUpdate = true;
     if (this.pMesh.instanceColor) this.pMesh.instanceColor.needsUpdate = true;
 
-    // Player ring
+    // A carried duck glitters (and everybody notices).
     const p = w.player;
+    if (!p.gone && !p.hidden && w.playerStatus.duckVisible && Math.random() < dt * 14) {
+      this.spawn({
+        x: p.pos.x + (Math.random() - 0.5) * 0.7,
+        y: 0.9 + Math.random() * 0.9,
+        z: p.pos.z + (Math.random() - 0.5) * 0.7,
+        vy: 0.6,
+        life: 0.7,
+        max: 0.7,
+        size: 0.06,
+        color: new THREE.Color('#ffe066'),
+      });
+    }
+    // Player ring
     this.playerRing.visible = !p.gone && !p.hidden;
     this.playerRing.position.set(p.pos.x, 0.06, p.pos.z);
     const chased = p.chasers.size > 0;

@@ -347,7 +347,7 @@ export class LevelView {
     if (!glass.empty) {
       this.caseGlass = new THREE.Mesh(
         glass.build(),
-        new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.28, depthWrite: false }),
+        new THREE.MeshLambertMaterial({ vertexColors: true, transparent: true, opacity: 0.16, depthWrite: false }),
       );
       this.group.add(this.caseGlass);
     }
@@ -599,7 +599,18 @@ export class LevelView {
         B(0, 0.95, 0, lw, 0.1, ld, '#d9d2c7');
         B(0, 0, 0, lw, 0.08, ld, '#d9d2c7');
         L('box', 0, 1.05 + 0.5, 0, lw * 0.9, 1.0, ld * 0.9, '#cfefff', 0, 0, 0, glass);
-        B(0, 2.05, 0, lw * 0.92, 0.04, ld * 0.92, '#c9a24a');
+        // Thin gold frame on the glass edges (no lid, so the duck is visible from above).
+        for (const [a, b2] of [
+          [-1, -1],
+          [1, -1],
+          [-1, 1],
+          [1, 1],
+        ])
+          B((a * lw * 0.9) / 2, 1.05, (b2 * ld * 0.9) / 2, 0.05, 1.0, 0.05, '#c9a24a');
+        B(0, 2.04, (-ld * 0.9) / 2, lw * 0.9, 0.04, 0.05, '#c9a24a');
+        B(0, 2.04, (ld * 0.9) / 2, lw * 0.9, 0.04, 0.05, '#c9a24a');
+        B((-lw * 0.9) / 2, 2.04, 0, 0.05, 0.04, ld * 0.9, '#c9a24a');
+        B((lw * 0.9) / 2, 2.04, 0, 0.05, 0.04, ld * 0.9, '#c9a24a');
         // little velvet cushion
         L('sphere', 0, 1.08, 0, 0.32, 0.06, 0.32, '#8b2f3a');
         break;

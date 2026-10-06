@@ -26,26 +26,39 @@ export interface SeeOpts {
   bright?: boolean;
 }
 
-/** Can npc see point p right now? */
-export function canSee(w: World, n: Npc, p: V2, o: SeeOpts = {}): boolean {
-  if (!n.awake || !n.active) return false;
+/**
+ * How well can npc see point p right now? 0 = not at all, ~0.45 = out of the corner of the eye
+ * (peripheral vision: shorter range), 1 = clearly.
+ */
+export function seeQuality(w: World, n: Npc, p: V2, o: SeeOpts = {}): number {
+  if (!n.awake || !n.active) return 0;
   const d = dist(n.pos, p);
   const vis = VISION[n.role];
   let range = o.range ?? vis.range;
   if (n.knowledge.wary > 0) range *= 1.15;
-  if (d > range * 1.15 + 0.5) return false;
+  if (d > range * 1.15 + 0.5) return 0;
   const a = angleOf({ x: p.x - n.pos.x, z: p.z - n.pos.z });
   const off = Math.abs(angleDiff(n.viewAngle, a));
-  // Very close people are sensed even at the edge of vision, but not directly behind.
-  if (off > vis.half && (d > 0.9 || off > 2.0)) return false;
+  let quality = 1;
+  if (off > vis.half) {
+    // Very close people are sensed even at the edge of vision, but not directly behind.
+    if (d <= 0.9 && off <= 2.0) quality = 1;
+    else if (off <= vis.half + 0.75) quality = 0.45;
+    else return 0;
+  }
   let light = w.lighting.at(p);
   if (n.flashlightOn && d < FLASH.range && off < FLASH.half) light = 1.1;
   let lf = lightFactor(light);
   if (o.bright) lf = Math.max(lf, 0.6);
-  let eff = range * lf;
+  let eff = range * lf * (quality < 1 ? 0.45 : 1);
   if (o.crouch) eff *= lf < 0.6 ? 0.65 : 0.85;
-  if (d > eff) return false;
-  return w.grid.los(n.pos, p);
+  if (d > eff) return 0;
+  return w.grid.los(n.pos, p) ? quality : 0;
+}
+
+/** Can npc see point p right now (clearly or out of the corner of the eye)? */
+export function canSee(w: World, n: Npc, p: V2, o: SeeOpts = {}): boolean {
+  return seeQuality(w, n, p, o) > 0;
 }
 
 /** Per-second suspicion rate this npc would gain from seeing the player, with reason. */
@@ -70,7 +83,7 @@ export function evaluatePlayer(w: World, n: Npc, d: number): { rate: number; rea
 
   if (n.enforces.has(st.outfit) && d < 5.5) {
     if (st.outfit === 'guest') {
-      if (!st.legit) consider(1.1, 'uninvited', '초대 명단에 없는 사람 같은데?');
+      if (!st.legit && !st.inStreet) consider(1.1, 'uninvited', '초대 명단에 없는 사람 같은데?');
     } else if (!(st.outfit === 'electrician' && w.power.anyOff() && n.job !== 'electrician')) {
       consider(1.0, 'disguise', '처음 보는 얼굴인데?');
     }

@@ -195,6 +195,9 @@ const EYE_X = 0.08;
 const BROW_Y = 0.13;
 const MOUTH_Y = -0.062;
 const FACE_R = 0.212; // surface radius used to place facial features
+/** brows wrap around the head sphere, so from the high game camera their outer ends look raised (= angry).
+ *  This bias lifts the inner ends so that a neutral face reads neutral from above. */
+const BROW_BIAS = -0.36;
 
 const C_WHITE = '#f7f4ec';
 const C_SHOE = '#3a3236';
@@ -448,7 +451,7 @@ const ponytailGeo = (): THREE.BufferGeometry =>
   );
 
 // ---------------------------------------------------------------------------------------------
-// hats (head space). Each returns [geometry, colourRole] list; role resolved by the model.
+// hats (head space). Each part is one mesh of one colour; `covers` swaps tall hair styles for a short cap.
 // ---------------------------------------------------------------------------------------------
 type HatPart = { key: string; color: string; make: () => THREE.BufferGeometry };
 interface HatDef { parts: HatPart[]; tilt: V3; extra: number; covers: boolean }
@@ -589,15 +592,15 @@ function eyesGeo(k: EyeKind): THREE.BufferGeometry {
     const parts: THREE.BufferGeometry[] = [];
     for (const sx of [-1, 1]) {
       let g: THREE.BufferGeometry;
-      if (k === 'arc') g = tf(tor(0.03, 0.01, 5, 10, PI), { p: [0, -0.012, 0] });
-      else if (k === 'big') g = tf(sph(0.041, 10, 8), { s: [1, 1.15, 0.5] });
-      else g = tf(sph(0.031, 10, 8), { s: [1, 1.2, 0.5] });
+      if (k === 'arc') g = tf(tor(0.032, 0.012, 5, 10, PI), { p: [0, -0.012, 0] });
+      else if (k === 'big') g = tf(sph(0.045, 10, 8), { s: [1, 1.15, 0.5] });
+      else g = tf(sph(0.034, 10, 8), { s: [1, 1.2, 0.5] });
       parts.push(tf(placeOnFace(g, sx * EYE_X, EYE_Y), { p: [0, -EYE_Y, 0] }));
     }
     return merge(parts);
   });
 }
-const browGeo = (): THREE.BufferGeometry => geo('brow', () => boxg(0.088, 0.026, 0.024));
+const browGeo = (): THREE.BufferGeometry => geo('brow', () => boxg(0.098, 0.032, 0.026));
 type MouthKind = 'line' | 'smile' | 'frown' | 'o' | 'small_o' | 'smirk' | 'wavy' | 'flat';
 function mouthGeo(k: MouthKind): THREE.BufferGeometry {
   return geo('mouth_' + k, () => {
@@ -1054,6 +1057,8 @@ export class CharacterModel {
   private hopT = -1;
   private prevHop = false;
   private spinT = -1;
+  private hiddenByPose = false;
+  private danceCycle = NaN;
   private eyeKind: EyeKind | '' = '';
   private mouthKind: MouthKind | '' = '';
   private mouthX = NaN;
@@ -1319,11 +1324,18 @@ export class CharacterModel {
     dt = clamp(fin(dt), 0, 0.1);
     const pose: Pose = s.pose;
     if (pose === 'hidden') {
+      // only the 'hidden' pose touches root.visible; otherwise visibility stays the caller's business
       this.root.visible = false;
+      this.scaleG.visible = false;
+      this.hiddenByPose = true;
       this.prevHop = !!s.hop;
       return;
     }
-    this.root.visible = true;
+    if (this.hiddenByPose) {
+      this.hiddenByPose = false;
+      this.root.visible = true;
+      this.scaleG.visible = true;
+    }
     this.t += dt;
     const t = this.t;
     const seedT = this.seed * 37;
@@ -1574,7 +1586,11 @@ export class CharacterModel {
           this.elbowT[i].set(SIDE[i], -0.4, -0.3);
           kick[i] = 0.06 * Math.max(0, Math.sin(PI * beat + i * PI));
         }
-        if (this.spinT < 0 && frac(beat / 8) < 0.02) this.spinT = 0;
+        const cyc = Math.floor(beat / 8);
+        if (cyc !== this.danceCycle) {
+          this.danceCycle = cyc;
+          if (this.spinT < 0) this.spinT = 0;
+        }
         break;
       }
       case 'type':
@@ -1705,6 +1721,8 @@ export class CharacterModel {
       this.elbowT[1].set(-1, -0.7, -0.3);
       this.propKind[1] = 'none';
     }
+    // a carried bottle / wrench already fills the right hand
+    if ((carry === 'bottle' || carry === 'wrench') && P === 1) this.propKind[1] = 'none';
     if (TWO_HAND.has(carry)) {
       const w = carry === 'box' ? 0.17 : 0.14;
       const yy = carry === 'box' ? 0.24 : 0.21;
@@ -1778,10 +1796,8 @@ export class CharacterModel {
       this.spinT += dt;
       const u = this.spinT / 0.7;
       spin = TAU * sstep(0, 1, u);
-      if (u >= 1) this.spinT = action === 'dance' ? -2 : -1;
+      if (u >= 1) this.spinT = -1;
     }
-    if (this.spinT < -1.5 && action === 'dance' && frac((t * 2.2 + seedT) / 8) > 0.5) this.spinT = -1;
-    if (action !== 'dance' && this.spinT >= 0) this.spinT = -1;
 
     // ---- apply skeleton ---------------------------------------------------------------------
     const pelvisY = C.hipY + bob;
@@ -1900,7 +1916,7 @@ export class CharacterModel {
       const o = onFace(sx * 0.09, BROW_Y + by, FACE_R + 0.014);
       const b = this.brows[i];
       b.position.set(o.p[0], o.p[1], o.p[2]);
-      b.rotation.set(o.rx, o.ry, sx * tilt);
+      b.rotation.set(o.rx, o.ry, sx * (tilt + BROW_BIAS));
     }
 
     // mouth

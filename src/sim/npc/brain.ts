@@ -24,7 +24,7 @@ import {
   type Report,
 } from './behaviors';
 import { HOSTILE_REASONS, type Npc, type SusReason } from './Npc';
-import { canSee, evaluatePlayer } from './perception';
+import { canSee, evaluatePlayer, seeQuality } from './perception';
 import { RoutineBehavior } from './routine';
 
 const SEV: Record<SusReason, number> = {
@@ -158,8 +158,12 @@ export class Brain {
     const k = n.knowledge;
     const p = w.player;
     k.wary = Math.max(0, k.wary - dt);
-    let sees = false;
-    if (!p.hidden && !p.gone && dist(n.pos, p.pos) < 18) sees = canSee(w, n, p.pos, { crouch: p.crouching });
+    let quality = 0;
+    if (!p.hidden && !p.gone && dist(n.pos, p.pos) < 18) {
+      // A gleaming golden duck is hard to miss, even in the dark.
+      quality = seeQuality(w, n, p.pos, { crouch: p.crouching && !w.playerStatus.duckVisible, bright: w.playerStatus.duckVisible });
+    }
+    const sees = quality > 0;
     k.seesPlayer = sees;
     const decay = () => {
       k.suspicion = Math.max(0, k.suspicion - dt * (k.wary > 0 ? 0.12 : 0.22));
@@ -167,9 +171,11 @@ export class Brain {
     };
     if (sees) {
       k.seeTime += dt;
-      k.lastSeen = { pos: { ...p.pos }, t: w.time, outfit: p.outfit };
       const d = dist(n.pos, p.pos);
       const ev = evaluatePlayer(w, n, d);
+      ev.rate *= quality;
+      // Only keep track of someone we have reason to watch (a new disguise breaks the trail).
+      if (k.compromised.has(p.outfit) || k.suspicion > 0.2 || ev.rate > 0) k.lastSeen = { pos: { ...p.pos }, t: w.time, outfit: p.outfit };
       if (ev.rate > 0) {
         if (SEV[ev.reason] >= SEV[k.reason] || k.suspicion < 0.25) {
           k.reason = ev.reason;
