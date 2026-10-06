@@ -435,15 +435,6 @@ export function buildInteractables(w: World): Interactable[] {
     });
   }
 
-  // ---------------------------------------------------------------- Loose items
-  out.push({
-    id: 'items',
-    name: '',
-    pos: () => p().pos,
-    range: 99,
-    actions: () => [],
-  });
-
   // ---------------------------------------------------------------- Self
   out.push({
     id: 'self',
@@ -453,7 +444,7 @@ export function buildInteractables(w: World): Interactable[] {
     bias: 3,
     actions: (w) => selfActions(w),
   });
-  return out.filter((i) => i.id !== 'items');
+  return out;
 }
 
 function doorActions(w: World, d: DoorState): ActionDef[] {

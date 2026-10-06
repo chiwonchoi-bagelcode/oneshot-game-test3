@@ -266,10 +266,13 @@ export class GameView {
   }
 
   dispose() {
+    const mats = new Set<THREE.Material>();
     this.scene.traverse((o) => {
       const m = o as THREE.Mesh;
       if (m.geometry) m.geometry.dispose();
+      if (m.material) (Array.isArray(m.material) ? m.material : [m.material]).forEach((x) => mats.add(x));
     });
+    for (const m of mats) m.dispose();
     this.lm.tex.dispose();
     this.renderer.renderLists.dispose();
   }
