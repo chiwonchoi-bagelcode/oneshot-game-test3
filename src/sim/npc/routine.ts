@@ -264,6 +264,8 @@ export class RoutineBehavior extends Behavior {
     }
     this.arriveFace(w, n, dt);
     n.action = t.act ?? 'none';
+    // Nobody dances in the dark.
+    if (t.act === 'dance' && !w.lighting.roomLit(w.grid.roomAt(n.pos)?.id ?? 'ballroom')) n.action = 'none';
     if (t.pose === 'sit') n.seated = true;
     this.timer -= dt;
     if (this.timer <= 0) {

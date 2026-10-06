@@ -107,7 +107,7 @@ export class Security {
     w.stats.lockdown = true;
     w.events.emit('lockdown', {});
     if (by.radio) this.radio(w, by, { kind: 'lockdown', text: '전원 봉쇄! 정문과 쪽문 폐쇄, 아무도 내보내지 마라!' });
-    if (by.isGuard) w.brain.request(w, by, new LockdownBehavior(), true);
+    if (by.isGuard) w.brain.request(w, by, new LockdownBehavior());
     // PA announcement needs power in the main house.
     if (w.power.on('B')) {
       this.announced = true;

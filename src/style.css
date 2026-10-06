@@ -164,6 +164,19 @@ body {
   position: relative;
   text-shadow: 0 2px 0 rgba(0, 0, 0, 0.25);
 }
+.npc-icon .why {
+  position: absolute;
+  top: 33px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1px 6px;
+  border-radius: 6px;
+  background: rgba(43, 42, 51, 0.85);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 400;
+  white-space: nowrap;
+}
 .npc-icon.c-yellow .g {
   color: #e8b400;
 }

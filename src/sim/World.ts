@@ -989,6 +989,10 @@ export class World {
       this.emitNoise({ pos: { x: 5, z: 26 }, radius: 25, kind: 'engine', source: 'player' });
     }
     if (route === 'boat') this.events.emit('sfx', { name: 'boat', x: 61, z: 1 });
+    if (route === 'front') {
+      const dm = this.npc('doorman');
+      if (dm && dm.awake && dm.behavior.prio < 50) dm.say(this, this.player.legit ? '조심히 들어가십시오, 손님!' : '...저분, 언제 들어오셨더라?', 'normal', 3);
+    }
     this.events.emit('escaped', { route });
   }
 

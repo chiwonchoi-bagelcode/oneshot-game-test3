@@ -24,6 +24,19 @@ const h = <K extends keyof HTMLElementTagNameMap>(tag: K, cls = '', html = ''): 
 
 const OUTFIT_ORDER: OutfitId[] = ['guest', 'waiter', 'chef', 'guard', 'electrician'];
 
+/** Why someone is getting suspicious (shown under their ? meter). */
+const REASON_LABEL: Record<string, string> = {
+  trespass: '구역 침입',
+  disguise: '변장 의심',
+  uninvited: '초대 명단?',
+  behavior: '수상한 행동',
+  item: '이상한 물건',
+  lockdown: '봉쇄 위반',
+  crime: '범행 목격!',
+  duck: '황금 오리!',
+  recognized: '수배범!',
+};
+
 export class Hud {
   private worldEl: HTMLElement;
   private hudEl: HTMLElement;
@@ -192,7 +205,8 @@ export class Hud {
             this.icons.set(n.id, el);
           }
           const ic = n.icon;
-          const key = `${ic.g}|${ic.color}|${ic.meter === undefined ? '' : Math.round(ic.meter * 20)}`;
+          const why = ic.meter !== undefined && ic.meter > 0.12 ? REASON_LABEL[n.knowledge.reason] ?? '' : '';
+          const key = `${ic.g}|${ic.color}|${ic.meter === undefined ? '' : Math.round(ic.meter * 20)}|${why}`;
           if (el.dataset.k !== key) {
             el.dataset.k = key;
             el.className = 'npc-icon c-' + ic.color;
@@ -200,7 +214,7 @@ export class Hud {
               ic.meter !== undefined
                 ? `<svg viewBox="0 0 34 34"><circle cx="17" cy="17" r="14" fill="rgba(255,255,255,0.85)" stroke="rgba(0,0,0,0.25)" stroke-width="3"/><circle cx="17" cy="17" r="14" fill="none" stroke="${ic.meter > 0.6 ? '#ff7a1a' : '#e8b400'}" stroke-width="4" stroke-dasharray="${(ic.meter * 88).toFixed(1)} 88" transform="rotate(-90 17 17)" stroke-linecap="round"/></svg>`
                 : '';
-            el.innerHTML = `${ring}<span class="g">${ic.g}</span>`;
+            el.innerHTML = `${ring}<span class="g">${ic.g}</span>${why ? `<span class="why">${why}</span>` : ''}`;
           }
           el.style.transform = `translate(${s.x}px, ${s.y}px)`;
           el.style.display = '';

@@ -86,6 +86,8 @@ export class Brain {
     cur.exit(w, n);
     n.action = 'none';
     n.seated = false;
+    n.behavior = r;
+    r.done = false;
     if (w.security.lockdown && n.awake) {
       if (n.isGuard) {
         n.behavior = new LockdownBehavior();
@@ -100,10 +102,8 @@ export class Brain {
     }
     if (w.flags.fireAlarm && n.awake && !n.isGuard) {
       w.director.evacuate(n);
-      if (n.behavior !== cur) return;
+      if (n.behavior !== r) return;
     }
-    n.behavior = r;
-    r.done = false;
     r.resume(w, n);
   }
 
@@ -517,7 +517,8 @@ export class Brain {
         if (n.job === 'chief' || (n.job === 'operator' && !w.npcAwake('chief'))) w.security.startLockdown(w, n);
         return;
       case 'lockdown':
-        if (n.isGuard) this.request(w, n, new LockdownBehavior(), true);
+        // Guards busy chasing/searching keep at it; they switch to lockdown duties afterwards.
+        if (n.isGuard) this.request(w, n, new LockdownBehavior());
         return;
       case 'power_out':
         if (n.job === 'electrician') this.request(w, n, new FixPowerBehavior());
