@@ -267,6 +267,7 @@ export class World {
 
     for (const def of NPCS) {
       const n = new Npc({ ...def, routine: def.routine.map((t) => ({ ...t })) as typeof def.routine });
+      n.scanT = this.rng.next() * 0.3;
       for (const t of def.items ?? []) {
         const it = new Item(t, n.pos, 0, '');
         it.state = 'pocket';
@@ -1356,9 +1357,11 @@ export class World {
         }
       }
     }
-    // Player vs NPCs: the player gets pushed (NPCs are solid-ish).
+    // Player vs NPCs: whoever walks into the other mostly gets stopped. A player who
+    // pushes into people barely moves them; people walking into a still player give way.
     const p = this.player;
     if (p.gone || p.hidden || p.climb) return;
+    const pushing = Math.hypot(p.input.x, p.input.z) > 0.1;
     for (const n of this.npcs) {
       if (!n.active) continue;
       const dx = p.pos.x - n.pos.x;
@@ -1367,8 +1370,9 @@ export class World {
       const min = p.radius + n.radius - 0.05;
       if (d < min && d > 1e-4) {
         const push = min - d;
-        p.pos = this.grid.move(p.pos, (dx / d) * push * 0.8, (dz / d) * push * 0.8, p.radius, p.agent);
-        if (n.awake) n.pos = this.grid.move(n.pos, (-dx / d) * push * 0.2, (-dz / d) * push * 0.2, n.radius, n.agent);
+        const share = !n.awake ? 1 : pushing ? 0.8 : 0.3;
+        p.pos = this.grid.move(p.pos, (dx / d) * push * share, (dz / d) * push * share, p.radius, p.agent);
+        if (n.awake) n.pos = this.grid.move(n.pos, (-dx / d) * push * (1 - share), (-dz / d) * push * (1 - share), n.radius, n.agent);
       }
     }
   }

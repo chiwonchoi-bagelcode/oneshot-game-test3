@@ -252,7 +252,7 @@ export function buildInteractables(w: World): Interactable[] {
       },
     });
   drink('coffee', '직원용 커피 머신', { x: 13.3, z: 23.5 }, 'coffee');
-  drink('cooler', '정수기', { x: 31.5, z: 23.2 }, 'cooler');
+  drink('cooler', '정수기', { x: 27.5, z: 23.2 }, 'cooler');
   drink('punch', '파티 펀치 볼', { x: 45.7, z: 27.5 }, 'punch');
 
   // ---------------------------------------------------------------- Fun stuff
@@ -493,8 +493,8 @@ function doorActions(w: World, d: DoorState): ActionDef[] {
         w.setDoorOpen(d, true, 'player', p.pos);
       },
       during: (w, dt) => {
-        if (Math.random() < dt * 3) w.events.emit('sfx', { name: 'lockpick', x: d.center.x, z: d.center.z, volume: 0.5 });
-        if (Math.random() < dt * 0.8) w.emitNoise({ pos: { ...d.center }, radius: 3.5, kind: 'step', source: 'player' });
+        if (w.rng.next() < dt * 3) w.events.emit('sfx', { name: 'lockpick', x: d.center.x, z: d.center.z, volume: 0.5 });
+        if (w.rng.next() < dt * 0.8) w.emitNoise({ pos: { ...d.center }, radius: 3.5, kind: 'step', source: 'player' });
       },
     });
   } else {

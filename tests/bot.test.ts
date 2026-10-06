@@ -15,7 +15,10 @@ class Bot {
   step(n = 1) {
     for (let i = 0; i < n; i++) {
       this.w.update(DT);
-      if (this.w.ended === 'caught') throw new Error(`game ended: ${this.w.ended} (${this.w.stats.caughtBy} ${this.w.stats.caughtWhy}) @${this.w.time.toFixed(0)}s; log: ${this.log.slice(-6).join(' | ')}`);
+      if (this.w.ended === 'caught') {
+        const radio = this.w.security.radioLog.slice(-4).map((r) => `${r.t.toFixed(0)} ${r.from}: ${r.text}`);
+        throw new Error(`game ended: caught (${this.w.stats.caughtBy} ${this.w.stats.caughtWhy}) @${this.w.time.toFixed(0)}s; log: ${this.log.slice(-6).join(' | ')}; radio: ${radio.join(' | ')}`);
+      }
     }
   }
   /** Nobody looks at the player and no powered camera sees them. */
@@ -29,6 +32,10 @@ class Bot {
     // Cameras only matter while someone watches the monitors (recordings are a later problem).
     if (w.security.operatorWatching(w) && w.security.cams.some((c) => c.seeing)) return false;
     return !w.player.chasers.size;
+  }
+  /** Nobody awake is in that room (an expert peeks before walking in). */
+  roomEmpty(id: string): boolean {
+    return !this.w.npcs.some((n) => n.active && n.awake && this.w.grid.roomAt(n.pos)?.id === id);
   }
   waitUntil(cond: () => boolean, maxT: number, label: string): boolean {
     let t = 0;
@@ -81,7 +88,8 @@ class Bot {
       }
     }
     p.input = { x: 0, z: 0 };
-    this.log.push(`walk timeout to ${target.x},${target.z}`);
+    const near = w.npcs.filter((x) => dist(x.pos, p.pos) < 3).map((x) => `${x.id}:${x.behavior.name}`);
+    this.log.push(`walk timeout to ${target.x},${target.z} (stuck at ${p.pos.x.toFixed(1)},${p.pos.z.toFixed(1)}; near ${near.join(',')})`);
     return false;
   }
   /** Get through a door: wait until nobody is around, then pick it (or just walk through if open). */
@@ -120,7 +128,11 @@ class Bot {
         this.log.push(`did ${actionId}@${w.time.toFixed(0)}`);
         return true;
       }
-      this.log.push(`aborted ${actionId}`);
+      const seers = this.w.npcs
+        .filter((n) => n.awake && n.active && seeQuality(this.w, n, this.p.pos) > 0)
+        .map((n) => `${n.id}:${n.behavior.name}`);
+      const cams = this.w.security.cams.filter((c) => c.seeing).map((c) => c.id);
+      this.log.push(`aborted ${actionId} @${this.w.time.toFixed(0)} (seen by ${[...seers, ...cams].join(',')})`);
       this.step(30);
     }
     return false;
@@ -131,7 +143,7 @@ describe('an expert player can beat the mansion', () => {
   it('quiet route: crawl gap, bath window, shed paint, fake duck swap via the study secret door, gift box, boat', () => {
     const w = new World(1234);
     const b = new Bot(w);
-    const ok = (v: boolean, what: string) => expect(v, `${what} — ${b.log.slice(-5).join(' | ')}`).toBe(true);
+    const ok = (v: boolean, what: string) => expect(v, `${what} — ${b.log.join(" | ")}`).toBe(true);
     // 1. In through the crawl gap.
     ok(b.walkTo({ x: 68.5, z: 60.6 }), 'reach gap');
     ok(b.walkTo({ x: 68.5, z: 57.5 }, true), 'crawl through');
@@ -157,9 +169,21 @@ describe('an expert player can beat the mansion', () => {
     ok(b.door('d_shed'), 'get into the shed');
     ok(b.walkTo({ x: 3.4, z: 5.2 }), 'in shed');
     ok(b.act('pick', 'gold_paint', false), 'take paint');
+    // Somebody may have locked the shed behind us while we rummaged: pick it from the inside.
+    ok(b.walkTo({ x: 4.5, z: 7.5 }), 'shed door (inside)');
+    ok(b.door('d_shed'), 'out of the shed');
     // 6. Into the study from the east end of the gallery hall.
     ok(b.walkTo({ x: 54, z: 15 }), 'conservatory again');
     ok(b.walkTo({ x: 47, z: 23.5 }), 'gallery hall east');
+    // The maid cleans the study on her rounds: watch her do it, then slip in after she leaves.
+    let maidWasIn = false;
+    const maidDone = () => {
+      const m = w.npc('maid')!;
+      const inStudy = w.grid.roomAt(m.pos)?.id === 'study';
+      if (inStudy) maidWasIn = true;
+      return maidWasIn && !inStudy && dist(m.pos, { x: 44.5, z: 22.5 }) > 6;
+    };
+    ok(b.waitUntil(maidDone, 240, 'maid done with the study'), 'wait for the maid');
     ok(b.walkTo({ x: 44.5, z: 22.7 }), 'study door');
     ok(b.door('d_study'), 'get into the study');
     ok(b.walkTo({ x: 44.5, z: 21.0 }), 'in study');
@@ -170,19 +194,42 @@ describe('an expert player can beat the mansion', () => {
     w.dropHeld();
     ok(b.act('paint', 'self'), 'paint the duck');
     expect(w.player.hand?.type).toBe('fake_duck');
+    // Unlock the secret door now, and shut it again (picking swings it open).
     ok(b.walkTo({ x: 41.7, z: 17.5 }), 'secret door');
     ok(b.door('d_study_gallery'), 'secret door');
-    // 7. Swap when the camera looks away.
+    if (w.door('d_study_gallery').open) {
+      w.player.facing = -Math.PI / 2;
+      ok(b.act('close', 'door:d_study_gallery', false), 'close the secret door');
+    }
+    // 7. The gallery camera covers the case, so wait for the operator's coffee break —
+    // inside the wardrobe, with the glittering fake duck tucked away in the gift box.
+    ok(b.walkTo({ x: 44.5, z: 20.3 }), 'by the gift box');
+    ok(b.act('putin', 'gift_box', false), 'fake duck into the box');
+    w.dropHeld();
+    ok(b.walkTo({ x: 42.4, z: 20.5 }), 'wardrobe');
+    ok(b.act('hide', 'hide:h_wardrobe'), 'hide in the wardrobe');
+    const atCoffee = () => dist(w.npc('operator')!.pos, w.station('st_coffee').pos) < 2;
+    ok(b.waitUntil(() => atCoffee() && b.roomEmpty('study') && b.roomEmpty('gallery'), 420, 'coffee break, nobody around'), 'wait for the coffee break');
+    ok(b.act('exit', 'hide:h_wardrobe', false), 'out of the wardrobe');
+    ok(b.walkTo({ x: 44.5, z: 20.3 }), 'back to the box');
+    ok(b.act('pick', 'gift_box', false), 'pick up the box');
+    ok(b.act('takeout', undefined, false), 'take out the fake duck');
+    expect(w.player.hand?.type).toBe('fake_duck');
+    ok(b.walkTo({ x: 41.7, z: 17.5 }), 'secret door');
     ok(b.walkTo({ x: 37.6, z: 19.0 }), 'next to case');
-    ok(b.act('swap', 'case'), 'swap');
+    ok(b.act('swap', 'case', true, 4), 'swap');
     expect(w.player.hand?.type).toBe('golden_duck');
     expect(w.security.alarmOn).toBe(false);
-    // 8. Back to the study, duck into the gift box, and stroll out to the dock.
+    // 8. Back to the study, shut the bookcase, duck into the gift box, and stroll out to the dock.
     ok(b.walkTo({ x: 41.7, z: 17.5 }), 'back to study');
+    ok(b.walkTo({ x: 42.6, z: 17.5 }), 'inside the study');
+    w.player.facing = -Math.PI / 2;
+    ok(b.act('close', 'door:d_study_gallery', false), 'close secret door');
     ok(b.walkTo({ x: 44.5, z: 20.3 }), 'by the gift box');
     ok(b.act('putin', 'gift_box'), 'duck into the box');
     expect(w.player.hand?.type).toBe('gift_box');
     expect(w.player.hasGoldenDuck()).toBe(true);
+    ok(b.walkTo({ x: 44.5, z: 21.3 }), 'study door (inside)');
     ok(b.door('d_study'), 'study door clear');
     ok(b.walkTo({ x: 44.5, z: 22.7 }), 'study exit');
     ok(b.walkTo({ x: 47, z: 23.5 }), 'gallery hall east');

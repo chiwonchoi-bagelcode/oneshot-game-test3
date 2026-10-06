@@ -232,7 +232,7 @@ export const FURNITURE: FurnDef[] = [
   F('bench', 54, 21.6, 1.8, 0.5, { color: '#f2efe6' }),
 
   // ---- Gallery hall
-  F('water_cooler', 31.5, 22.45, 0.6, 0.6, { id: 'water_cooler' }),
+  F('water_cooler', 27.5, 22.45, 0.6, 0.6, { id: 'water_cooler' }),
   F('plant', 33.5, 22.4, 0.6, 0.6),
   F('plant', 39.5, 22.4, 0.6, 0.6),
   F('plant', 47.4, 24.5, 0.6, 0.6),

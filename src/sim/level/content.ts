@@ -23,7 +23,7 @@ const ST: [string, number, number, number][] = [
   ['st_smoke_a', 9.4, 35.8, S],
   ['st_smoke_b', 9.4, 37.1, N],
   ['st_galguard', 36, 23.7, S],
-  ['st_cooler', 31.5, 23.3, N],
+  ['st_cooler', 27.5, 23.3, N],
   ['st_operator', 20.5, 15.75, N],
   ['st_coffee', 13.35, 23.5, W],
   ['st_staff_sofa', 15.5, 27.55, N],

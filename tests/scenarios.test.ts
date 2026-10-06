@@ -312,4 +312,22 @@ describe('systemic scenarios', () => {
     run(w, 2);
     expect(w.flags.fixFailedBy.size).toBe(0);
   });
+
+  it('a laxative in the water cooler sends the gallery guard running to the toilet, leaving his post', () => {
+    const w = new World(79);
+    // (Doing this right next to the guard would get you caught: we assume a moment he was away.)
+    give(w, 'laxative');
+    w.spike('cooler', 'laxative');
+    expect(w.spiked.cooler?.type).toBe('laxative');
+    tp(w, { x: 70, z: 62 });
+    const gg = w.npc('gallery_guard')!;
+    const sick = run(w, 300, 1 / 30, () => gg.behavior.name === 'sick');
+    expect(sick).toBe(true);
+    // He actually leaves the gallery hall.
+    const left = run(w, 30, 1 / 30, () => w.grid.roomAt(gg.pos)?.id !== 'galhall');
+    expect(left).toBe(true);
+    // ...and eventually comes back to his post.
+    const back = run(w, 120, 1 / 30, () => gg.behavior.name === 'routine' && Math.hypot(gg.pos.x - 36, gg.pos.z - 23.7) < 1);
+    expect(back).toBe(true);
+  });
 });

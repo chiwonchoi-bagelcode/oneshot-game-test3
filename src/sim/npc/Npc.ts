@@ -216,7 +216,7 @@ export class Npc {
   talkUntil = 0;
   /** Chat spot slot occupied. */
   slot: { spot: string; i: number } | null = null;
-  scanT = Math.random() * 0.3;
+  scanT = 0;
 
   constructor(def: NpcDef) {
     this.id = def.id;
@@ -414,6 +414,16 @@ export class Npc {
     const d = Math.hypot(dx, dz);
     const sp = this.speedFor(this.mode);
     const reach = last ? 0.12 : 0.35;
+    // Someone standing right on our spot: close enough, don't shove them off it.
+    const pl = w.player;
+    const plBlocks = !pl.gone && !pl.hidden && !pl.climb;
+    const headingForPlayer = plBlocks && !!this.goal && dist(this.goal, pl.pos) < 1.2;
+    if (last && plBlocks && !headingForPlayer && d < 1.0 && dist(wp, pl.pos) < this.radius + pl.radius + 0.1) {
+      this.arrived = true;
+      this.path = [];
+      this.speed = 0;
+      return;
+    }
     if (d <= reach) {
       if (last) {
         this.arrived = true;
@@ -425,8 +435,25 @@ export class Npc {
       return;
     }
     const step = Math.min(d, sp * dt);
-    const nx = dx / d;
-    const nz = dz / d;
+    let nx = dx / d;
+    let nz = dz / d;
+    if (plBlocks && !headingForPlayer) {
+      // Step around the player instead of bulldozing through them.
+      const px = pl.pos.x - this.pos.x;
+      const pz = pl.pos.z - this.pos.z;
+      const along = px * nx + pz * nz;
+      const side = px * -nz + pz * nx;
+      const clear = this.radius + pl.radius + 0.15;
+      if (along > 0 && along < 1.2 && Math.abs(side) < clear) {
+        const k = (1 - along / 1.2) * 1.6 + 0.3;
+        const s = side >= 0 ? -1 : 1;
+        const ax = nx + -nz * s * k;
+        const az = nz + nx * s * k;
+        const al = Math.hypot(ax, az) || 1;
+        nx = ax / al;
+        nz = az / al;
+      }
+    }
     const np = w.grid.move(this.pos, nx * step, nz * step, this.radius, this.agent);
     const moved = Math.hypot(np.x - this.pos.x, np.z - this.pos.z);
     this.vel = { x: (np.x - this.pos.x) / dt, z: (np.z - this.pos.z) / dt };
