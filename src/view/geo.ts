@@ -1,19 +1,20 @@
 // Tiny helper to merge many coloured primitives into one geometry (one draw call).
 import * as THREE from 'three';
 
+const ni = (g: THREE.BufferGeometry) => (g.index ? g.toNonIndexed() : g);
 const T = {
-  box: new THREE.BoxGeometry(1, 1, 1).toNonIndexed(),
-  cyl: new THREE.CylinderGeometry(1, 1, 1, 14).toNonIndexed(),
-  cyl6: new THREE.CylinderGeometry(1, 1, 1, 6).toNonIndexed(),
-  cyl8: new THREE.CylinderGeometry(1, 1, 1, 8).toNonIndexed(),
-  sphere: new THREE.SphereGeometry(1, 12, 8).toNonIndexed(),
-  sphereLo: new THREE.IcosahedronGeometry(1, 1).toNonIndexed(),
-  sphereTiny: new THREE.IcosahedronGeometry(1, 0).toNonIndexed(),
-  cone: new THREE.ConeGeometry(1, 1, 14).toNonIndexed(),
-  cone4: new THREE.ConeGeometry(1, 1, 4).toNonIndexed(),
-  cone8: new THREE.ConeGeometry(1, 1, 8).toNonIndexed(),
-  torus: new THREE.TorusGeometry(1, 0.12, 6, 20).toNonIndexed(),
-  plane: new THREE.PlaneGeometry(1, 1).toNonIndexed(),
+  box: ni(new THREE.BoxGeometry(1, 1, 1)),
+  cyl: ni(new THREE.CylinderGeometry(1, 1, 1, 14)),
+  cyl6: ni(new THREE.CylinderGeometry(1, 1, 1, 6)),
+  cyl8: ni(new THREE.CylinderGeometry(1, 1, 1, 8)),
+  sphere: ni(new THREE.SphereGeometry(1, 12, 8)),
+  sphereLo: ni(new THREE.IcosahedronGeometry(1, 1)),
+  sphereTiny: ni(new THREE.IcosahedronGeometry(1, 0)),
+  cone: ni(new THREE.ConeGeometry(1, 1, 14)),
+  cone4: ni(new THREE.ConeGeometry(1, 1, 4)),
+  cone8: ni(new THREE.ConeGeometry(1, 1, 8)),
+  torus: ni(new THREE.TorusGeometry(1, 0.12, 6, 20)),
+  plane: ni(new THREE.PlaneGeometry(1, 1)),
 };
 export type Prim = keyof typeof T;
 

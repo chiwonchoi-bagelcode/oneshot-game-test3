@@ -311,7 +311,10 @@ export class Hud {
     const main = TODOS.filter((t) => t.main)
       .map((t) => `<li class="${done.has(t.id) ? 'done' : ''}">${t.text}</li>`)
       .join('');
-    const extra = recent ? `<li class="done">${TODOS.find((t) => t.id === recent)!.text}</li>` : '';
+    // A few open bonus ideas (rotating as they get done) hint at other ways to play.
+    const open = bonus.filter((t) => !done.has(t.id) && t.id !== 'ghost').slice(0, 3);
+    const extra =
+      (recent ? `<li class="done">${TODOS.find((t) => t.id === recent)!.text}</li>` : '') + open.map((t) => `<li>${t.text}</li>`).join('');
     this.todoEl.innerHTML = `<h3>할 일</h3><ul>${main}</ul><div class="bonus">그리고 덤으로… (${bonusDone}/${bonus.length})<ul>${extra}</ul></div><div class="hint">Tab: 수첩 (소문·지도·할 일)</div>`;
   }
 

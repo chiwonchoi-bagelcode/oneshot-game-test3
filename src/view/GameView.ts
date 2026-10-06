@@ -66,7 +66,7 @@ export class GameView {
     const r = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
     r.setPixelRatio(Math.min(1.5, window.devicePixelRatio || 1));
     r.shadowMap.enabled = true;
-    r.shadowMap.type = THREE.PCFSoftShadowMap;
+    r.shadowMap.type = THREE.PCFShadowMap;
     r.outputColorSpace = THREE.SRGBColorSpace;
     return r;
   }
@@ -94,6 +94,7 @@ export class GameView {
     sc.near = 1;
     sc.far = 70;
     this.sun.shadow.bias = -0.0008;
+    this.sun.shadow.radius = 3;
     this.sun.shadow.normalBias = 0.03;
     this.scene.add(this.sun, this.sun.target);
 
